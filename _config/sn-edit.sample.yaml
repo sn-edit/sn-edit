@@ -1,0 +1,27 @@
+app:
+  log_level: debug
+  rate_limit: 2
+  rest:
+    masked: true
+    password: password
+    url: https://dev111.service-now.com
+    user: admin
+    xor_key: randomxorkey
+  root_directory: /path/to/scripts/folder/tmp
+  tables:
+    - name: sys_script
+      fields:
+        - field: sys_id
+          extension: txt
+        - field: script
+          extension: js
+        - field: sys_name
+          extension: txt
+    - name: sys_script_include
+      fields:
+        - field: sys_id
+          extension: txt
+        - field: script
+          extension: js
+        - field: sys_name
+          extension: txt
