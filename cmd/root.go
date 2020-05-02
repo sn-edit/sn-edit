@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/0x111/sn-edit/api"
 	"github.com/0x111/sn-edit/conf"
+	"github.com/mbndr/figlet4go"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/mbndr/figlet4go"
 	"os"
 )
 
@@ -21,7 +21,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "sn-edit",
 	Short: "An editor for developing stuff for Servicenow locally",
-	Long:  `sn-edit provides you a simple and easy way to edit and sync your files from your Servicenow instance
+	Long: `sn-edit provides you a simple and easy way to edit and sync your files from your Servicenow instance
 the app is lightweight and easy to use. It will give you a lot of options to work on your code locally, while syncing
 to Servicenow.`,
 }
@@ -58,6 +58,10 @@ func initConfig() {
 
 	conf.SetConfig(viper.GetViper())
 	conf.SetLoggerLevel()
+	// connect to db
+	conf.ConnectDB()
+	// setup database
+	conf.BuildTables()
 	// setup http client that we will use throughout the app
 	api.SetupClient()
 	// setup directory structure

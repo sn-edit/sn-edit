@@ -23,3 +23,18 @@ func Get(url string) ([]byte, error) {
 
 	return resp.Body(), nil
 }
+
+func Put(url string, body interface{}) ([]byte, error) {
+	restClient := conf.GetClient()
+
+	resp, err := restClient.R().
+		SetBody(body).
+		Put(url)
+
+	if err != nil {
+		log.WithFields(log.Fields{"error": err}).Error("There was a problem uploading the entry from the instance! Please try again later!")
+		return nil, err
+	}
+
+	return resp.Body(), nil
+}

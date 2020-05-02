@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/0x111/sn-edit/api"
 	"github.com/0x111/sn-edit/conf"
+	"github.com/0x111/sn-edit/db"
 	"github.com/0x111/sn-edit/directory"
 	"github.com/0x111/sn-edit/file"
 	"github.com/icza/dyno"
@@ -54,6 +56,8 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 
 		// get the fields for the table in question on the CLI
 		fields := conf.GetTableFieldNames(tablesConfig, tableName)
+		// enforce scope
+		fields = append(fields, "sys_scope")
 
 		// setup the download url
 		downloadURL := config.GetString("app.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(fields, ",")
@@ -69,7 +73,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		err = json.Unmarshal(response, &responseResult)
 
 		if err != nil {
-			fmt.Println("There was an error while unmarshaling the response!", err)
+			fmt.Println("There was an error while unmarshalling the response!", err)
 			return
 		}
 
@@ -88,8 +92,32 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 			log.WithFields(log.Fields{"error": err, "key": "sys_name"}).Error("There was an error while getting the unique key!")
 		}
 
+		fieldScope, err := dyno.GetString(result, "sys_scope", "value")
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err, "key": "download.sys_scope.value"}).Error("There was an error while getting the unique key!")
+			return
+		}
+
+		// write entry to the db
+		err = db.WriteEntry(tableName, fieldSysName, sysID, fieldScope)
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err}).Debug("Error writing entry to the database!")
+			return
+		}
+
+		// get scope name from sys_id
+		success, scopeName := db.GetScopeNameFromSysID(fieldScope)
+
+		if !success {
+			err = errors.New("query_scope_name")
+			log.WithFields(log.Fields{"error": err}).Debug("Could not get scope name from sys_id")
+			return
+		}
+
 		// create directory for sys_name
-		directoryPath := config.GetString("app.root_directory") + string(os.PathSeparator) + tableName + string(os.PathSeparator) + fieldSysName
+		directoryPath := config.GetString("app.root_directory") + string(os.PathSeparator) + scopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + file.FilterSpecialChars(fieldSysName)
 		_, err = directory.CreateDirectoryStructure(directoryPath)
 
 		if err != nil {
@@ -97,9 +125,13 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 			return
 		}
 
-		// todo error handling
 		// go through all the fields that are defined in the config
 		for _, fieldName := range fields {
+			// we do not need to download sys_scope
+			if fieldName == "sys_scope" {
+				continue
+			}
+
 			fieldContent, err := dyno.GetString(result, fieldName)
 
 			if err != nil {
@@ -108,7 +140,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 
 			fieldExtension := conf.GetFieldExtension(tablesConfig, tableName, fieldName)
 
-			err = file.WriteFile(tableName, fieldSysName, fieldName, fieldExtension, []byte(fieldContent))
+			err = file.WriteFile(tableName, scopeName, fieldSysName, fieldName, fieldExtension, []byte(fieldContent))
 
 			if err != nil {
 				log.WithFields(log.Fields{"error": err}).Error("File writing error! Check permissions please!")
