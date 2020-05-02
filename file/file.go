@@ -2,14 +2,15 @@ package file
 
 import (
 	"github.com/0x111/sn-edit/conf"
+	"github.com/kennygrant/sanitize"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 )
 
 // Write The contents of the script to a file
-func WriteFile(tableName string, fieldSysName string, fieldName string, extension string, contents []byte) error {
-	filePath := GenerateFilePath(tableName, fieldSysName, fieldName, extension)
+func WriteFile(tableName string, scopeName string, fieldSysName string, fieldName string, extension string, contents []byte) error {
+	filePath := GenerateFilePath(tableName, scopeName, fieldSysName, fieldName, extension)
 
 	if err := FileExists(filePath); err != nil {
 		log.WithFields(log.Fields{"error": err, "filepath": filePath}).Error("There was an error while checking for the file existence!")
@@ -26,6 +27,17 @@ func WriteFile(tableName string, fieldSysName string, fieldName string, extensio
 	return nil
 }
 
+// Read the file contents
+func ReadFile(filename string) ([]byte, error) {
+	dat, err := ioutil.ReadFile(filename)
+	log.WithFields(log.Fields{"file_name": filename}).Debug("Reading file contents")
+	if err != nil {
+		return nil, err
+	}
+
+	return dat, nil
+}
+
 // Returns error if the file exists, nil if it does not exist
 func FileExists(filePath string) error {
 	_, err := os.Stat(filePath)
@@ -37,7 +49,11 @@ func FileExists(filePath string) error {
 	return nil
 }
 
-func GenerateFilePath(tableName string, fieldSysName string, fieldName string, extension string) string {
+func GenerateFilePath(tableName string, scopeName string, fieldSysName string, fieldName string, extension string) string {
 	config := conf.GetConfig()
-	return config.GetString("app.root_directory") + string(os.PathSeparator) + tableName + string(os.PathSeparator) + fieldSysName + string(os.PathSeparator) + fieldName + "." + extension
+	return config.GetString("app.root_directory") + string(os.PathSeparator) + scopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + FilterSpecialChars(fieldSysName) + string(os.PathSeparator) + fieldName + "." + extension
+}
+
+func FilterSpecialChars(name string) string {
+	return sanitize.BaseName(name)
 }

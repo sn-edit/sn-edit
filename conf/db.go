@@ -1,8 +1,7 @@
-package db
+package conf
 
 import (
 	"database/sql"
-	"github.com/0x111/sn-edit/conf"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -18,11 +17,16 @@ func GetDB() *sql.DB {
 
 func ConnectDB() *sql.DB {
 	var err error
-	config := conf.GetConfig()
+	config := GetConfig()
 
 	log.Debug("Connecting to the database...")
+	path := config.GetString("app.db.path")
 
-	db, err = sql.Open("sqlite3", "file:"+config.GetString("app.db.path")+"?cache=shared")
+	if path == "" {
+		log.WithFields(log.Fields{"error": err, "path": path}).Error("Please specify a database path!")
+	}
+
+	db, err = sql.Open("sqlite3", "file:"+path+"?cache=shared")
 
 	// Check error for database connection
 	if err != nil {

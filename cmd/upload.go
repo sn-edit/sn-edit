@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"github.com/0x111/sn-edit/api"
 	"github.com/0x111/sn-edit/conf"
-	"github.com/0x111/sn-edit/directory"
+	"github.com/0x111/sn-edit/db"
 	"github.com/0x111/sn-edit/file"
-	"github.com/icza/dyno"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"os"
 	"strings"
 )
 
@@ -50,74 +48,74 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 
 		fields, err := cmd.Flags().GetString("fields")
 
-		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName}).Info("Uploading data to the instance")
-
 		fieldsSlice := strings.Split(fields, ",")
+
+		// if array length is 1, but the first element is an empty string, do not allow processing
+		if len(fieldsSlice) == 1 && fieldsSlice[0] == "" {
+			log.WithFields(log.Fields{"error": "please provide the fields"}).Error("Please provide a valid fields flag!")
+			return
+		}
 
 		// get table configuration from the config file
 		tablesConfig := config.Get("app.tables").([]interface{})
 
 		// get the fields for the table in question on the CLI
-		//fields := conf.GetTableFieldNames(tablesConfig, tableName)
+		configFields := conf.GetTableFieldNames(tablesConfig, tableName)
 
-		// setup the download url
-		downloadURL := config.GetString("app.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(fieldsSlice, ",")
+		// todo: check if valid fields provided, compare tableconfig with the fieldsSlice
 
-		response, err := api.Get(downloadURL)
+		// build data
+		data := make(map[string]interface{})
 
-		if err != nil {
+		found, sysName := db.QuerySysName(tableName, sysID)
+
+		if !found {
+			log.WithFields(log.Fields{"error": err, "table_name": tableName, "sys_id": sysID}).Error("There was an error while getting the key!")
 			return
 		}
 
-		// unmarshal response
-		var responseResult map[string]interface{}
-		err = json.Unmarshal(response, &responseResult)
+		success, fileScopeName := db.GetEntryScopeName(tableName, sysID)
 
-		if err != nil {
-			fmt.Println("There was an error while unmarshaling the response!", err)
+		if !success {
+			log.WithFields(log.Fields{"error": err, "table_name": tableName, "sys_id": sysID}).Error("Please re-download the entry again!")
 			return
 		}
 
-		result, err := dyno.Get(responseResult, "result")
-
-		if err != nil {
-			fmt.Println("Error getting the result key!", err)
-			return
-		}
-
-		// iterate through the entries
-		//for _, entry := range results {
-		fieldSysName, err := dyno.GetString(result, "sys_name")
-
-		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "sys_name"}).Error("There was an error while getting the unique key!")
-		}
-
-		// create directory for sys_name
-		directoryPath := config.GetString("app.root_directory") + string(os.PathSeparator) + tableName + string(os.PathSeparator) + fieldSysName
-		_, err = directory.CreateDirectoryStructure(directoryPath)
-
-		if err != nil {
-			log.WithFields(log.Fields{"error": err, "directory": directoryPath}).Error("There was an error while creating the directory structure! Please check the permissions!")
-			return
-		}
-
-		// todo error handling
-		// go through all the fields that are defined in the config
-		for _, fieldName := range fields {
-			fieldContent, err := dyno.GetString(result, fieldName)
+		// iterate through the cli fields which need updating on the instance
+		for _, cliField := range fieldsSlice {
+			// find the extension based on the field and tableName from the config
+			extension := conf.GetFieldExtension(tablesConfig, tableName, cliField)
+			// generate file path to the given file, full path, to read
+			filePath := file.GenerateFilePath(tableName, fileScopeName, sysName, cliField, extension)
+			// get the contents of the file
+			content, err := file.ReadFile(filePath)
 
 			if err != nil {
-				log.WithFields(log.Fields{"error": err, "key": fieldName}).Error("There was an error while getting the key!")
+				log.WithFields(log.Fields{"error": err, "file_path": filePath}).Error("There was an error while getting the key!")
+				return
 			}
 
-			fieldExtension := conf.GetFieldExtension(tablesConfig, tableName, fieldName)
+			data[cliField] = string(content)
+		}
 
-			err = file.WriteFile(tableName, fieldSysName, fieldName, fieldExtension, []byte(fieldContent))
+		// marshal into JSON
+		dataJSON, err := json.Marshal(data)
 
-			if err != nil {
-				log.WithFields(log.Fields{"error": err}).Error("File writing error! Check permissions please!")
-			}
+		if err != nil {
+			fmt.Println("There was an error while marshaling the data!", err)
+			return
+		}
+
+		// setup the upload url
+		uploadURL := config.GetString("app.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(configFields, ",")
+
+		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fieldsSlice}).Info("Uploading data to the instance")
+
+		_, err = api.Put(uploadURL, dataJSON)
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err, "sys_id": sysID, "table": tableName, "fields": fieldsSlice}).Error("There was an error while uploading the data!")
+			return
 		}
 	},
 }

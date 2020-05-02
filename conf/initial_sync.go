@@ -1,22 +1,38 @@
-package db
+package conf
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
 func BuildTables() {
 	dbc := GetDB()
+	config := GetConfig()
 
 	sqlStmt := `
-    CREATE TABLE IF NOT EXISTS entry(id integer primary key autoincrement, sys_id text, sys_name text)
-    CREATE INDEX IF NOT EXISTS entries ON entry(sys_id);
+    CREATE TABLE IF NOT EXISTS entry(id integer primary key autoincrement, sys_id text, sys_name text, unique_key text, entry_table integer, sys_scope integer, last_modified integer, FOREIGN KEY(entry_table) REFERENCES entry_table(id), FOREIGN KEY(sys_scope) REFERENCES entry_scope(id));
+    CREATE TABLE IF NOT EXISTS entry_table(id integer primary key autoincrement, sys_id text, name text, sys_scope integer, FOREIGN KEY(sys_scope) REFERENCES entry_scope(id));
+    CREATE TABLE IF NOT EXISTS entry_scope(id integer primary key autoincrement, sys_id text, name text);
+    CREATE INDEX IF NOT EXISTS entries_ids ON entry(sys_id);
+    CREATE INDEX IF NOT EXISTS entries_tables ON entry_table(sys_id);
+    CREATE INDEX IF NOT EXISTS entries_scopes ON entry_scope(sys_id);
     `
 
-	_, err := dbc.Exec(sqlStmt)
+	if !config.GetBool("app.db.initialised") {
+		_, err := dbc.Exec(sqlStmt)
 
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		config.Set("app.db.initialised", true)
+		err = config.WriteConfig()
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err}).Error("There was a problem while rewriting the config file! Check the permissions please!")
+			os.Exit(1)
+		}
 	}
 }
