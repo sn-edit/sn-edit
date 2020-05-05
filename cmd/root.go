@@ -64,8 +64,6 @@ func initConfig() {
 	conf.BuildTables()
 	// setup http client that we will use throughout the app
 	api.SetupClient()
-	// setup directory structure
-	conf.SetupDirectoryStructure()
 }
 
 func Execute() {
@@ -94,15 +92,20 @@ func init() {
 	// config file
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.sn-edit.yaml)")
 	// download command flags
-	downloadEntryCmd.Flags().StringP("table", "", "", "the table from where sn-edit should get the entry from")
+	downloadEntryCmd.Flags().StringP("table", "t", "", "the table from where sn-edit should get the entry from")
 	downloadEntryCmd.Flags().StringP("sys_id", "", "", "the sys_id of the entry which you would like to get")
-
-	uploadEntryCmd.Flags().StringP("table", "", "", "the table from where sn-edit should get the entry from")
+	// upload command flags
+	uploadEntryCmd.Flags().StringP("table", "t", "", "the table from where sn-edit should get the entry from")
 	uploadEntryCmd.Flags().StringP("sys_id", "", "", "the sys_id of the entry which you would like to get")
-	uploadEntryCmd.Flags().StringP("fields", "", "", "provide one or more fields, comma separated (example: \"name,script,active\")")
-	// assign the commands to the cli
+	uploadEntryCmd.Flags().StringP("fields", "f", "", "provide one or more fields, comma separated (example: \"name,script,active\")")
+	// update set flags
+	updateSetCmd.Flags().BoolP("list", "", false, "use this to list update sets for the scope provided")
+	updateSetCmd.Flags().BoolP("set", "", false, "use this to set update sets for the scope provided")
+	updateSetCmd.Flags().StringP("scope", "", "global", "the name of the scope (example: \"global\")")
+	updateSetCmd.Flags().StringP("update_set", "", "global", "the sys_id of the update_set (example: \"<sys_id\")")
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(downloadEntryCmd)
 	rootCmd.AddCommand(uploadEntryCmd)
+	rootCmd.AddCommand(updateSetCmd)
 	PrintBanner()
 }
