@@ -13,7 +13,13 @@ import (
 func ListCommand(scopeName string) {
 	config := conf.GetConfig()
 
-	found, scopeID := db.ScopeExists(scopeName)
+	scopeSysID, err := db.RequestScopeDataFromInstance(scopeName)
+
+	if err != nil {
+		return
+	}
+
+	found, scopeID := db.QueryScope(scopeSysID)
 
 	if !found {
 		log.WithFields(log.Fields{"error": "scope_not_found", "found": false, "scope_name": scopeName}).Error("Could not find scope in the DB!")
@@ -21,7 +27,7 @@ func ListCommand(scopeName string) {
 	}
 
 	// make request to the instance (to get an updated list of scopes for the scope in the CLI)
-	listUpdateSetEndpoint := config.GetString("app.rest.url") + "/api/now/ui/concoursepicker/updateset?sysparm_transaction_scope=" + scopeID
+	listUpdateSetEndpoint := config.GetString("app.rest.url") + "/api/now/ui/concoursepicker/updateset?sysparm_transaction_scope=" + scopeSysID
 	response, err := api.Get(listUpdateSetEndpoint)
 
 	if err != nil {
@@ -90,7 +96,7 @@ func ListCommand(scopeName string) {
 		}
 
 		// write to db if not exists
-		err = db.WriteUpdateSet(name, sysID)
+		err = db.WriteUpdateSet(name, sysID, scopeID)
 
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Debug("There was an error while writing the Update Set data!")

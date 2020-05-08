@@ -12,7 +12,7 @@ import (
 func SetCommand(scopeName string, updateSetSysID string) {
 	config := conf.GetConfig()
 
-	found, scopeID := db.ScopeExists(scopeName)
+	found, scopeID, _ := db.ScopeExists(scopeName)
 
 	if !found {
 		log.WithFields(log.Fields{"error": "scope_not_found", "found": false, "scope_name": scopeName}).Error("Could not find scope in the DB!")

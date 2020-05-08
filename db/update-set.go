@@ -6,7 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func WriteUpdateSet(updateSetName string, updateSetSysID string) error {
+func WriteUpdateSet(updateSetName string, updateSetSysID string, updateSetScope string) error {
 	dbc := conf.GetDB()
 	// check if entry exists
 	if exists, _ := UpdateSetExists(updateSetSysID); exists == true {
@@ -14,7 +14,7 @@ func WriteUpdateSet(updateSetName string, updateSetSysID string) error {
 		return nil
 	}
 
-	stmt, err := dbc.Prepare("INSERT INTO update_set(sys_id, name) VALUES(?,?)")
+	stmt, err := dbc.Prepare("INSERT INTO update_set(sys_id, name, sys_scope) VALUES(?,?,?)")
 	defer stmt.Close()
 
 	if err != nil {
@@ -22,7 +22,7 @@ func WriteUpdateSet(updateSetName string, updateSetSysID string) error {
 		return err
 	}
 
-	_, err = stmt.Exec(updateSetSysID, updateSetName)
+	_, err = stmt.Exec(updateSetSysID, updateSetName, updateSetScope)
 
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("There was an error while executing the query!")
