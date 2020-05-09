@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/0x111/sn-edit/api"
 	"github.com/0x111/sn-edit/conf"
@@ -49,18 +48,20 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 			return
 		}
 
-		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName}).Info("Downloading the data from the instance")
-
 		// get table configuration from the config file
 		tablesConfig := config.Get("app.tables").([]interface{})
 
 		// get the fields for the table in question on the CLI
 		fields := conf.GetTableFieldNames(tablesConfig, tableName)
 		// enforce scope
-		fields = append(fields, "sys_scope")
+		fields = append(fields, "sys_scope.name")
+
+		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
 
 		// setup the download url
 		downloadURL := config.GetString("app.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(fields, ",")
+
+		log.WithFields(log.Fields{"api_url": downloadURL, "sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
 
 		response, err := api.Get(downloadURL)
 
@@ -92,32 +93,28 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 			log.WithFields(log.Fields{"error": err, "key": "sys_name"}).Error("There was an error while getting the unique key!")
 		}
 
-		fieldScope, err := dyno.GetString(result, "sys_scope", "value")
+		log.WithFields(log.Fields{"name": fieldSysName}).Info("Entry identified!")
+
+		fieldScopeName, err := dyno.GetString(result, "sys_scope.name")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "download.sys_scope.value"}).Error("There was an error while getting the unique key!")
+			log.WithFields(log.Fields{"error": err, "key": "download.sys_scope.name"}).Error("There was an error while getting the unique key!")
 			return
 		}
 
+		// scope names are always lowercase
+		fieldScopeName = strings.ToLower(fieldScopeName)
+
 		// write entry to the db
-		err = db.WriteEntry(tableName, fieldSysName, sysID, fieldScope)
+		err = db.WriteEntry(tableName, fieldSysName, sysID, fieldScopeName)
 
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Debug("Error writing entry to the database!")
 			return
 		}
 
-		// get scope name from sys_id
-		success, scopeName := db.GetScopeNameFromSysID(fieldScope)
-
-		if !success {
-			err = errors.New("query_scope_name")
-			log.WithFields(log.Fields{"error": err}).Debug("Could not get scope name from sys_id")
-			return
-		}
-
 		// create directory for sys_name
-		directoryPath := config.GetString("app.root_directory") + string(os.PathSeparator) + scopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + file.FilterSpecialChars(fieldSysName)
+		directoryPath := config.GetString("app.root_directory") + string(os.PathSeparator) + fieldScopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + file.FilterSpecialChars(fieldSysName)
 		_, err = directory.CreateDirectoryStructure(directoryPath)
 
 		if err != nil {
@@ -128,7 +125,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		// go through all the fields that are defined in the config
 		for _, fieldName := range fields {
 			// we do not need to download sys_scope
-			if fieldName == "sys_scope" {
+			if strings.Contains(fieldName, "scope") {
 				continue
 			}
 
@@ -140,7 +137,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 
 			fieldExtension := conf.GetFieldExtension(tablesConfig, tableName, fieldName)
 
-			err = file.WriteFile(tableName, scopeName, fieldSysName, fieldName, fieldExtension, []byte(fieldContent))
+			err = file.WriteFile(tableName, fieldScopeName, fieldSysName, fieldName, fieldExtension, []byte(fieldContent))
 
 			if err != nil {
 				log.WithFields(log.Fields{"error": err}).Error("File writing error! Check permissions please!")

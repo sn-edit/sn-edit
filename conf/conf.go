@@ -1,11 +1,9 @@
 package conf
 
-import(
-	"github.com/0x111/sn-edit/directory"
+import (
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var conf *viper.Viper
@@ -42,23 +40,4 @@ func SetLoggerLevel() {
 	case "fatal":
 		log.SetLevel(log.FatalLevel)
 	}
-}
-
-func SetupDirectoryStructure() {
-	config := GetConfig()
-
-	// get table configuration from the config file
-	tablesConfig := config.Get("app.tables").([]interface{})
-	// get all the table names
-	tablesData := GetTableNames(tablesConfig)
-
-	for _, tableName := range tablesData {
-		// create directory structure, main table folders
-		_, err := directory.CreateDirectoryStructure(config.GetString("app.root_directory") + string(os.PathSeparator) + tableName)
-
-		if err != nil {
-			log.WithFields(log.Fields{"path": config.GetString("app.root_directory") + string(os.PathSeparator) + tableName}).Error("We could not create the directory under the provided path!")
-		}
-	}
-
 }

@@ -56,6 +56,19 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 			return
 		}
 
+		// get the update set name if exists
+		updateSet, err := cmd.Flags().GetString("update_set")
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err}).Error("Parsing error update_set flag!")
+			return
+		}
+
+		if len(sysID) != 32 {
+			log.WithFields(log.Fields{"error": "update_set length must be 32"}).Error("Please provide a valid update_set flag!")
+			return
+		}
+
 		// get table configuration from the config file
 		tablesConfig := config.Get("app.tables").([]interface{})
 
@@ -107,15 +120,22 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 		}
 
 		// setup the upload url
-		uploadURL := config.GetString("app.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(configFields, ",")
+		uploadURLv2 := fmt.Sprintf("%s/api/now/table/%s/%s?sysparm_fields=%s&sysparm_scope=%s", config.GetString("app.rest.url"), tableName, sysID, strings.Join(configFields, ","), fileScopeName)
+
+		// if there is an update set passed
+		if len(updateSet) == 32 {
+			uploadURLv2 = uploadURLv2 + "&sysparm_transaction_update_set=" + updateSet
+		}
 
 		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fieldsSlice}).Info("Uploading data to the instance")
 
-		_, err = api.Put(uploadURL, dataJSON)
+		_, err = api.Put(uploadURLv2, dataJSON)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "sys_id": sysID, "table": tableName, "fields": fieldsSlice}).Error("There was an error while uploading the data!")
+			log.WithFields(log.Fields{"error": err, "sys_id": sysID, "table": tableName, "fields": fieldsSlice, "scope": fileScopeName}).Error("There was an error while uploading the data!")
 			return
 		}
+
+		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fieldsSlice, "scope": fileScopeName}).Info("The data was successfully uploaded!")
 	},
 }

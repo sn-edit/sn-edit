@@ -10,9 +10,8 @@ import (
 )
 
 // provides methods to handle entries
-func WriteEntry(tableName string, sysName string, sysID string, sysScope string) error {
+func WriteEntry(tableName string, sysName string, sysID string, sysScopeName string) error {
 	dbc := conf.GetDB()
-	config := conf.GetConfig()
 	// get table id from name if found
 	// write table data
 	err := WriteTable(tableName)
@@ -30,16 +29,15 @@ func WriteEntry(tableName string, sysName string, sysID string, sysScope string)
 	}
 
 	// write scope for file
-	fileScopeDataURL := config.GetString("app.rest.url") + "/api/now/table/sys_scope/" + sysScope
-	err = WriteScope(sysScope, fileScopeDataURL)
+	sysScope, err := RequestScopeDataFromInstance(sysScopeName)
 
 	if err != nil {
-		log.WithFields(log.Fields{"err": err}).Debug("Could not write scope data to database!")
 		return err
 	}
 
 	// get scope for file
 	found, fileScope := QueryScope(sysScope)
+
 	if !found {
 		err = errors.New("entry_not_found")
 		log.WithFields(log.Fields{"err": err}).Debug("Entry not found! Please re-download!")

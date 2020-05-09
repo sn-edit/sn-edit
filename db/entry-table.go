@@ -23,7 +23,7 @@ func WriteTable(tableName string) error {
 	// get the table details from REST
 	// setup the table API URL url
 	// https://devxxxx.service-now.com/api/now/table/sys_db_object?sysparm_query=name=sys_db_object&sysparm_fields=sys_id,sys_scope,name&sysparm_limit=1
-	tableAPIURL := config.GetString("app.rest.url") + "/api/now/table/sys_db_object?sysparm_query=name=" + tableName + "&sysparm_fields=sys_id,sys_scope,name&sysparm_limit=1"
+	tableAPIURL := config.GetString("app.rest.url") + "/api/now/table/sys_db_object?sysparm_query=name=" + tableName + "&sysparm_fields=sys_id,sys_scope.sys_id,sys_scope.name,name&sysparm_limit=1"
 
 	response, err := api.Get(tableAPIURL)
 
@@ -70,23 +70,23 @@ func WriteTable(tableName string) error {
 		}
 
 		// table scope
-		scopeDataURL, err := dyno.GetString(res, "sys_scope", "link") // scope api url
+		scopeName, err := dyno.GetString(res, "sys_scope.name") // scope name
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "sys_scope.link"}).Error("There was an error while getting the unique key!")
+			log.WithFields(log.Fields{"error": err, "key": "sys_scope.name"}).Error("There was an error while getting the key!")
 			return err
 		}
 
-		scopeDataID, err = dyno.GetString(res, "sys_scope", "value") // sys_id of scope
+		scopeDataID, err = dyno.GetString(res, "sys_scope.sys_id") // sys_id of scope
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "sys_scope.value"}).Error("There was an error while getting the unique key!")
+			log.WithFields(log.Fields{"error": err, "key": "sys_scope.sys_id"}).Error("There was an error while getting the key!")
 			return err
 		}
 
 		// check for scope and insert if non-existent
 		// GET scope data for table
-		err = WriteScope(scopeDataID, scopeDataURL)
+		err = WriteScope(scopeDataID, scopeName)
 
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Debug("There was an error while writing the scope data!")
