@@ -57,6 +57,11 @@ func initConfig() {
 	}
 
 	conf.SetConfig(viper.GetViper())
+	// Validate the config file
+	conf.ValidateConfig()
+	// Validate table data if correct
+	conf.ValidateTableData()
+	// Set the log level
 	conf.SetLoggerLevel()
 	// connect to db
 	conf.ConnectDB()

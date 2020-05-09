@@ -21,7 +21,7 @@ func BuildTables() {
     CREATE INDEX IF NOT EXISTS idx_update_sets ON update_set(sys_id);
     `
 
-	if !config.GetBool("app.db.initialised") {
+	if !config.GetBool("app.core.db.initialised") {
 		_, err := dbc.Exec(sqlStmt)
 
 		if err != nil {
@@ -29,7 +29,7 @@ func BuildTables() {
 			os.Exit(1)
 		}
 
-		config.Set("app.db.initialised", true)
+		config.Set("app.core.db.initialised", true)
 		err = config.WriteConfig()
 
 		if err != nil {

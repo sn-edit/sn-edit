@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/0x111/sn-edit/conf"
 	"github.com/0x111/sn-edit/xor"
-    "github.com/go-resty/resty/v2"
+	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"os"
 )
@@ -14,19 +14,19 @@ func loadCredentials() (string, string) {
 	var err error
 	config := conf.GetConfig()
 
-	username := config.GetString("app.rest.user")
-	passwordCredential := config.GetString("app.rest.password")
-	xorKey := config.GetString("app.rest.xor_key")
-	isMasked := config.GetBool("app.rest.masked")
+	username := config.GetString("app.core.rest.user")
+	passwordCredential := config.GetString("app.core.rest.password")
+	xorKey := config.GetString("app.core.rest.xor_key")
+	isMasked := config.GetBool("app.core.rest.masked")
 
 	if isMasked == true {
 		passwordCredential = xor.EncryptDecrypt(passwordCredential, xorKey)
 	}
 
 	if isMasked == false {
-		xorPassword := xor.EncryptDecrypt(config.GetString("app.rest.password"), config.GetString("app.rest.xor_key"))
-		config.Set("app.rest.password", xorPassword)
-		config.Set("app.rest.masked", true)
+		xorPassword := xor.EncryptDecrypt(config.GetString("app.core.rest.password"), config.GetString("app.rest.xor_key"))
+		config.Set("app.core.rest.password", xorPassword)
+		config.Set("app.core.rest.masked", true)
 		err = config.WriteConfig()
 
 		if err != nil {
@@ -37,7 +37,6 @@ func loadCredentials() (string, string) {
 
 	return username, passwordCredential
 }
-
 
 func SetupClient() {
 	// Create a Resty Client

@@ -23,7 +23,7 @@ func WriteTable(tableName string) error {
 	// get the table details from REST
 	// setup the table API URL url
 	// https://devxxxx.service-now.com/api/now/table/sys_db_object?sysparm_query=name=sys_db_object&sysparm_fields=sys_id,sys_scope,name&sysparm_limit=1
-	tableAPIURL := config.GetString("app.rest.url") + "/api/now/table/sys_db_object?sysparm_query=name=" + tableName + "&sysparm_fields=sys_id,sys_scope.sys_id,sys_scope.name,name&sysparm_limit=1"
+	tableAPIURL := config.GetString("app.core.rest.url") + "/api/now/table/sys_db_object?sysparm_query=name=" + tableName + "&sysparm_fields=sys_id,sys_scope.sys_id,sys_scope.name,name&sysparm_limit=1"
 
 	response, err := api.Get(tableAPIURL)
 

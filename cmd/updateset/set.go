@@ -42,7 +42,7 @@ func SetCommand(scopeName string, updateSetSysID string) {
 	log.Infof("Setting your Update Set in the scope %s to %s!", scopeName, name)
 
 	// make request to the instance (to get an updated list of scopes for the scope in the CLI)
-	setUpdateSetEndPoint := config.GetString("app.rest.url") + "/api/now/ui/concoursepicker/updateset?sysparm_transaction_scope=" + scopeID
+	setUpdateSetEndPoint := config.GetString("app.core.rest.url") + "/api/now/ui/concoursepicker/updateset?sysparm_transaction_scope=" + scopeID
 	_, err = api.Put(setUpdateSetEndPoint, dataJSON)
 
 	if err != nil {

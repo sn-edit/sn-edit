@@ -144,7 +144,7 @@ func RequestScopeDataFromInstance(scopeName string) (string, error) {
 
 	query := fmt.Sprintf("sysparm_query=scope=%s&sysparm_fields=%s", scopeName, strings.Join(fields, ","))
 
-	endpoint := config.GetString("app.rest.url") + "/api/now/table/sys_scope?" + query
+	endpoint := config.GetString("app.core.rest.url") + "/api/now/table/sys_scope?" + query
 
 	response, err := RequestScopeData(endpoint)
 
