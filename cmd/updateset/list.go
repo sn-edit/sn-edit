@@ -106,7 +106,7 @@ func ListCommand(scopeName string) {
 		if sysID == currentSysID {
 			continue
 		}
-
+		fmt.Print("\n")
 		fmt.Printf("Update set: %s\n", name)
 		fmt.Printf("Sys id: %s\n", sysID)
 	}

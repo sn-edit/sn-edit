@@ -3,6 +3,7 @@ package conf
 import (
 	"github.com/icza/dyno"
 	log "github.com/sirupsen/logrus"
+	"os"
 )
 
 func GetTableNames(tablesConfig []interface{}) []string {
@@ -58,21 +59,44 @@ func GetTableFieldNames(tablesConfig []interface{}, tableName string) []string {
 	return result
 }
 
-// todo: error handling
 func GetFieldExtension(tablesConfig []interface{}, tableName string, fieldName string) string {
 	// iterate tables from the configuration file
 	for _, value := range tablesConfig {
 		// get the table name from this and filter based on that
-		table, _ := dyno.GetString(value, "name")
+		table, err := dyno.GetString(value, "name")
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err, "path": "fieldExtension.name"}).Error("Was not able to find the key!")
+			os.Exit(1)
+		}
+
 		if table == tableName {
 			// get the fields
-			fields, _ := dyno.Get(value, "fields")
+			fields, err := dyno.Get(value, "fields")
+
+			if err != nil {
+				log.WithFields(log.Fields{"error": err, "path": "fieldExtension.fields"}).Error("Was not able to find the key!")
+				os.Exit(1)
+			}
+
 			fieldMap := fields.([]interface{})
 			// now select the field names only
 			for _, field := range fieldMap {
-				fieldNeedle, _ := dyno.GetString(field, "field")
+				fieldNeedle, err := dyno.GetString(field, "field")
+
+				if err != nil {
+					log.WithFields(log.Fields{"error": err, "path": "fieldExtension.fields.field"}).Error("Was not able to find the key!")
+					os.Exit(1)
+				}
+
 				if fieldNeedle == fieldName {
-					fieldExtension, _ := dyno.GetString(field, "extension")
+					fieldExtension, err := dyno.GetString(field, "extension")
+
+					if err != nil {
+						log.WithFields(log.Fields{"error": err, "path": "fieldExtension.fields.field"}).Error("Was not able to find the key!")
+						os.Exit(1)
+					}
+
 					return fieldExtension
 				}
 			}
