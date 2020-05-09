@@ -120,7 +120,7 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 		}
 
 		// setup the upload url
-		uploadURLv2 := fmt.Sprintf("%s/api/now/table/%s/%s?sysparm_fields=%s&sysparm_scope=%s", config.GetString("app.rest.url"), tableName, sysID, strings.Join(configFields, ","), fileScopeName)
+		uploadURLv2 := fmt.Sprintf("%s/api/now/table/%s/%s?sysparm_fields=%s&sysparm_scope=%s", config.GetString("app.core.rest.url"), tableName, sysID, strings.Join(configFields, ","), fileScopeName)
 
 		// if there is an update set passed
 		if len(updateSet) == 32 {

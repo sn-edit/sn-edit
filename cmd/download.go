@@ -59,7 +59,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
 
 		// setup the download url
-		downloadURL := config.GetString("app.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(fields, ",")
+		downloadURL := config.GetString("app.core.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(fields, ",")
 
 		log.WithFields(log.Fields{"api_url": downloadURL, "sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
 
@@ -114,7 +114,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		}
 
 		// create directory for sys_name
-		directoryPath := config.GetString("app.root_directory") + string(os.PathSeparator) + fieldScopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + file.FilterSpecialChars(fieldSysName)
+		directoryPath := config.GetString("app.core.root_directory") + string(os.PathSeparator) + fieldScopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + file.FilterSpecialChars(fieldSysName)
 		_, err = directory.CreateDirectoryStructure(directoryPath)
 
 		if err != nil {

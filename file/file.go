@@ -51,7 +51,7 @@ func FileExists(filePath string) error {
 
 func GenerateFilePath(tableName string, scopeName string, fieldSysName string, fieldName string, extension string) string {
 	config := conf.GetConfig()
-	return config.GetString("app.root_directory") + string(os.PathSeparator) + scopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + FilterSpecialChars(fieldSysName) + string(os.PathSeparator) + fieldName + "." + extension
+	return config.GetString("app.core.root_directory") + string(os.PathSeparator) + scopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + FilterSpecialChars(fieldSysName) + string(os.PathSeparator) + fieldName + "." + extension
 }
 
 func FilterSpecialChars(name string) string {

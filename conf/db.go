@@ -20,7 +20,7 @@ func ConnectDB() *sql.DB {
 	config := GetConfig()
 
 	log.Debug("Connecting to the database...")
-	path := config.GetString("app.db.path")
+	path := config.GetString("app.core.db.path")
 
 	if path == "" {
 		log.WithFields(log.Fields{"error": err, "path": path}).Error("Please specify a database path!")

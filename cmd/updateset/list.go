@@ -27,7 +27,7 @@ func ListCommand(scopeName string) {
 	}
 
 	// make request to the instance (to get an updated list of scopes for the scope in the CLI)
-	listUpdateSetEndpoint := config.GetString("app.rest.url") + "/api/now/ui/concoursepicker/updateset?sysparm_transaction_scope=" + scopeSysID
+	listUpdateSetEndpoint := config.GetString("app.core.rest.url") + "/api/now/ui/concoursepicker/updateset?sysparm_transaction_scope=" + scopeSysID
 	response, err := api.Get(listUpdateSetEndpoint)
 
 	if err != nil {
