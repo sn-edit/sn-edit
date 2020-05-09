@@ -53,8 +53,9 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 
 		// get the fields for the table in question on the CLI
 		fields := conf.GetTableFieldNames(tablesConfig, tableName)
-		// enforce scope
-		fields = append(fields, "sys_scope.name")
+
+		// enforce sys_id and scope if not present already
+		conf.EnforceFields(fields)
 
 		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
 
