@@ -49,5 +49,5 @@ func SetCommand(scopeName string, updateSetSysID string) {
 		return
 	}
 
-	log.Infof("The Update Set was updated in the %s scope to %s!", scopeName, name)
+	log.WithFields(log.Fields{"scope": scopeName, "updateset": log.Fields{"name": name, "sys_id": sysID}}).Info("Success updating the default update set for scope!")
 }
