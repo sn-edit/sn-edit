@@ -56,12 +56,11 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		// enforce sys_id and scope if not present already
 		fields = conf.EnforceFields(fields)
 
-		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
-
 		// setup the download url
 		downloadURL := config.GetString("app.core.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(fields, ",")
 
-		log.WithFields(log.Fields{"api_url": downloadURL, "sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
+		log.WithFields(log.Fields{"api_url": downloadURL}).Debug()
+		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
 
 		response, err := api.Get(downloadURL)
 
@@ -93,7 +92,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 			log.WithFields(log.Fields{"error": err, "key": "sys_name"}).Error("There was an error while getting the unique key!")
 		}
 
-		log.WithFields(log.Fields{"name": fieldSysName}).Info("Entry identified!")
+		log.WithFields(log.Fields{"name": fieldSysName}).Debug("Entry identified!")
 
 		fieldScopeName, err := dyno.GetString(result, "sys_scope.name")
 
