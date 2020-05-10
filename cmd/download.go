@@ -55,7 +55,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		fields := conf.GetTableFieldNames(tablesConfig, tableName)
 
 		// enforce sys_id and scope if not present already
-		conf.EnforceFields(fields)
+		fields = conf.EnforceFields(fields)
 
 		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
 
@@ -144,5 +144,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 				log.WithFields(log.Fields{"error": err}).Error("File writing error! Check permissions please!")
 			}
 		}
+
+		log.WithFields(log.Fields{"table_name": tableName, "sys_id": sysID}).Info("Entry successfully downloaded")
 	},
 }

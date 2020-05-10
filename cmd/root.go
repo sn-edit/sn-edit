@@ -6,6 +6,7 @@ import (
 	"github.com/0x111/sn-edit/conf"
 	"github.com/mbndr/figlet4go"
 	"github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -52,8 +53,20 @@ func initConfig() {
 
 	viper.AutomaticEnv()
 
+	// exclude banner if json output requested
+	if outputJSON, _ := rootCmd.Flags().GetBool("json"); !outputJSON {
+		PrintBanner()
+	}
+
+	// do not write out text for json output
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		if outputJSON, _ := rootCmd.Flags().GetBool("json"); !outputJSON {
+			fmt.Println("Using config file:", viper.ConfigFileUsed())
+		}
+	}
+
+	if outputJSON, _ := rootCmd.Flags().GetBool("json"); outputJSON {
+		log.SetFormatter(&log.JSONFormatter{})
 	}
 
 	conf.SetConfig(viper.GetViper())
@@ -96,6 +109,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	// config file
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.sn-edit.yaml)")
+	// json output formatting
+	rootCmd.PersistentFlags().BoolP("json", "", false, "set this if you want sn-edit to output json to stdout")
 	// download command flags
 	downloadEntryCmd.Flags().StringP("table", "t", "", "the table from where sn-edit should get the entry from")
 	downloadEntryCmd.Flags().StringP("sys_id", "", "", "the sys_id of the entry which you would like to get")
@@ -113,5 +128,4 @@ func init() {
 	rootCmd.AddCommand(downloadEntryCmd)
 	rootCmd.AddCommand(uploadEntryCmd)
 	rootCmd.AddCommand(updateSetCmd)
-	PrintBanner()
 }

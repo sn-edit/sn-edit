@@ -37,7 +37,7 @@ Attention: An invalid scope name defaults to global scope. I warned you!`,
 		}
 
 		if list {
-			updateset.ListCommand(scopeName)
+			updateset.ListCommand(cmd, scopeName)
 			return
 		}
 

@@ -106,13 +106,15 @@ func GetFieldExtension(tablesConfig []interface{}, tableName string, fieldName s
 	return ""
 }
 
-func EnforceFields(fields []string) {
+func EnforceFields(fields []string) []string {
 	requiredFields := []string{"sys_id", "sys_scope.name"}
 	for _, requiredField := range requiredFields {
 		if !containsField(fields, requiredField) {
 			fields = append(fields, requiredField)
 		}
 	}
+
+	return fields
 }
 
 func containsField(fields []string, key string) bool {

@@ -8,9 +8,10 @@ import (
 	"github.com/0x111/sn-edit/db"
 	"github.com/icza/dyno"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
-func ListCommand(scopeName string) {
+func ListCommand(cmd *cobra.Command, scopeName string) {
 	config := conf.GetConfig()
 
 	scopeSysID, err := db.RequestScopeDataFromInstance(scopeName)
@@ -75,12 +76,11 @@ func ListCommand(scopeName string) {
 		return
 	}
 
-	fmt.Printf("Currently selected update set for the %s scope\n", scopeName)
-
-	fmt.Printf("Update Set: %s\n", currentName)
-	fmt.Printf("Sys id: %s\n", currentSysID)
-	fmt.Println("------------------------------")
-	fmt.Printf("List of Update sets for %s scope\n", scopeName)
+	// build data json.. eventually
+	var data = map[string]interface{}{}
+	// add the current update set
+	data["current"] = map[string]string{"name": currentName, "sys_id": currentSysID}
+	data["others"] = []interface{}{}
 
 	for _, updateSet := range updateSets {
 		sysID, err := dyno.GetString(updateSet, "sysId")
@@ -106,8 +106,27 @@ func ListCommand(scopeName string) {
 		if sysID == currentSysID {
 			continue
 		}
-		fmt.Print("\n")
-		fmt.Printf("Update set: %s\n", name)
-		fmt.Printf("Sys id: %s\n", sysID)
+
+		data["others"] = append(data["others"].([]interface{}), map[string]string{"name": name, "sys_id": sysID})
+	}
+
+	if outputJSON, _ := cmd.Flags().GetBool("json"); outputJSON {
+		log.WithFields(data).Info()
+	} else {
+		fmt.Printf("Currently selected update set for the %s scope\n", scopeName)
+
+		fmt.Printf("Update Set: %s\n", currentName)
+		fmt.Printf("Sys id: %s\n", currentSysID)
+		fmt.Println("------------------------------")
+		fmt.Printf("List of Update sets for %s scope\n", scopeName)
+
+		for _, row := range data["others"].([]interface{}) {
+			name := row.(map[string]string)["name"]
+			sysID := row.(map[string]string)["sys_id"]
+
+			fmt.Print("\n")
+			fmt.Printf("Update set: %s\n", name)
+			fmt.Printf("Sys id: %s\n", sysID)
+		}
 	}
 }
