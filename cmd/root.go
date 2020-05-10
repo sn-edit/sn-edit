@@ -6,6 +6,7 @@ import (
 	"github.com/0x111/sn-edit/conf"
 	"github.com/mbndr/figlet4go"
 	"github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -24,10 +25,13 @@ var rootCmd = &cobra.Command{
 	Long: `sn-edit provides you a simple and easy way to edit and sync your files from your Servicenow instance
 the app is lightweight and easy to use. It will give you a lot of options to work on your code locally, while syncing
 to Servicenow.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
 }
 
 func er(msg interface{}) {
-	fmt.Println("Error:", msg)
+	log.WithFields(log.Fields{"error": msg}).Error("Error")
 	os.Exit(1)
 }
 
@@ -52,8 +56,18 @@ func initConfig() {
 
 	viper.AutomaticEnv()
 
+	// exclude banner if json output requested
+	if outputJSON, _ := rootCmd.Flags().GetBool("json"); !outputJSON {
+		PrintBanner()
+	}
+
+	// do not write out text for json output
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.WithFields(log.Fields{"config": viper.ConfigFileUsed()}).Debug("Using config file")
+	}
+
+	if outputJSON, _ := rootCmd.Flags().GetBool("json"); outputJSON {
+		log.SetFormatter(&log.JSONFormatter{})
 	}
 
 	conf.SetConfig(viper.GetViper())
@@ -96,6 +110,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	// config file
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.sn-edit.yaml)")
+	// json output formatting
+	rootCmd.PersistentFlags().BoolP("json", "", false, "set this if you want sn-edit to output json to stdout")
 	// download command flags
 	downloadEntryCmd.Flags().StringP("table", "t", "", "the table from where sn-edit should get the entry from")
 	downloadEntryCmd.Flags().StringP("sys_id", "", "", "the sys_id of the entry which you would like to get")
@@ -113,5 +129,4 @@ func init() {
 	rootCmd.AddCommand(downloadEntryCmd)
 	rootCmd.AddCommand(uploadEntryCmd)
 	rootCmd.AddCommand(updateSetCmd)
-	PrintBanner()
 }

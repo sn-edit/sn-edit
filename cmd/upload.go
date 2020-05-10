@@ -115,7 +115,7 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 		dataJSON, err := json.Marshal(data)
 
 		if err != nil {
-			fmt.Println("There was an error while marshaling the data!", err)
+			log.WithFields(log.Fields{"error": err}).Error("Error while marshalling JSON data!")
 			return
 		}
 

@@ -24,7 +24,7 @@ func loadCredentials() (string, string) {
 	}
 
 	if isMasked == false {
-		xorPassword := xor.EncryptDecrypt(config.GetString("app.core.rest.password"), config.GetString("app.rest.xor_key"))
+		xorPassword := xor.EncryptDecrypt(config.GetString("app.core.rest.password"), config.GetString("app.core.rest.xor_key"))
 		config.Set("app.core.rest.password", xorPassword)
 		config.Set("app.core.rest.masked", true)
 		err = config.WriteConfig()

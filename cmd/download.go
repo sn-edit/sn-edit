@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/0x111/sn-edit/api"
 	"github.com/0x111/sn-edit/conf"
 	"github.com/0x111/sn-edit/db"
@@ -55,14 +54,13 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		fields := conf.GetTableFieldNames(tablesConfig, tableName)
 
 		// enforce sys_id and scope if not present already
-		conf.EnforceFields(fields)
-
-		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
+		fields = conf.EnforceFields(fields)
 
 		// setup the download url
 		downloadURL := config.GetString("app.core.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(fields, ",")
 
-		log.WithFields(log.Fields{"api_url": downloadURL, "sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
+		log.WithFields(log.Fields{"api_url": downloadURL}).Debug()
+		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fields}).Info("Downloading the data from the instance")
 
 		response, err := api.Get(downloadURL)
 
@@ -75,14 +73,14 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		err = json.Unmarshal(response, &responseResult)
 
 		if err != nil {
-			fmt.Println("There was an error while unmarshalling the response!", err)
+			log.WithFields(log.Fields{"error": err}).Error("There was an error while unmarshalling the response!")
 			return
 		}
 
 		result, err := dyno.Get(responseResult, "result")
 
 		if err != nil {
-			fmt.Println("Error getting the result key!", err)
+			log.WithFields(log.Fields{"error": err}).Error("Error getting the result key!")
 			return
 		}
 
@@ -94,7 +92,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 			log.WithFields(log.Fields{"error": err, "key": "sys_name"}).Error("There was an error while getting the unique key!")
 		}
 
-		log.WithFields(log.Fields{"name": fieldSysName}).Info("Entry identified!")
+		log.WithFields(log.Fields{"name": fieldSysName}).Debug("Entry identified!")
 
 		fieldScopeName, err := dyno.GetString(result, "sys_scope.name")
 
@@ -144,5 +142,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 				log.WithFields(log.Fields{"error": err}).Error("File writing error! Check permissions please!")
 			}
 		}
+
+		log.WithFields(log.Fields{"table_name": tableName, "sys_id": sysID}).Info("Entry successfully downloaded")
 	},
 }
