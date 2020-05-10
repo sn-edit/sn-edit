@@ -31,6 +31,7 @@ func GetClient() *resty.Client {
 func SetLoggerLevel() {
 	switch conf.GetString("app.core.log_level") {
 	case "debug":
+		log.SetReportCaller(true)
 		log.SetLevel(log.DebugLevel)
 	case "info":
 		log.SetLevel(log.InfoLevel)
