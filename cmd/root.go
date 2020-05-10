@@ -28,7 +28,7 @@ to Servicenow.`,
 }
 
 func er(msg interface{}) {
-	fmt.Println("Error:", msg)
+	log.WithFields(log.Fields{"error": msg}).Error("Error")
 	os.Exit(1)
 }
 
@@ -60,9 +60,7 @@ func initConfig() {
 
 	// do not write out text for json output
 	if err := viper.ReadInConfig(); err == nil {
-		if outputJSON, _ := rootCmd.Flags().GetBool("json"); !outputJSON {
-			fmt.Println("Using config file:", viper.ConfigFileUsed())
-		}
+		log.WithFields(log.Fields{"config": viper.ConfigFileUsed()}).Debug("Using config file")
 	}
 
 	if outputJSON, _ := rootCmd.Flags().GetBool("json"); outputJSON {

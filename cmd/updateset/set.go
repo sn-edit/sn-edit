@@ -2,7 +2,6 @@ package updateset
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/0x111/sn-edit/api"
 	"github.com/0x111/sn-edit/conf"
 	"github.com/0x111/sn-edit/db"
@@ -35,7 +34,7 @@ func SetCommand(scopeName string, updateSetSysID string) {
 	dataJSON, err := json.Marshal(data)
 
 	if err != nil {
-		fmt.Println("Error marshalling json!", err)
+		log.WithFields(log.Fields{"error": err}).Error("Error during marshalling to JSON!")
 		return
 	}
 
@@ -46,7 +45,7 @@ func SetCommand(scopeName string, updateSetSysID string) {
 	_, err = api.Put(setUpdateSetEndPoint, dataJSON)
 
 	if err != nil {
-		fmt.Println("ERROR", err)
+		log.WithFields(log.Fields{"error": err}).Error("Error while uploading data to the instance!")
 		return
 	}
 

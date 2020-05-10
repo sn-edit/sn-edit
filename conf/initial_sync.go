@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"os"
 )
@@ -25,7 +24,7 @@ func BuildTables() {
 		_, err := dbc.Exec(sqlStmt)
 
 		if err != nil {
-			fmt.Println(err)
+			log.WithFields(log.Fields{"error": err}).Error("Database initialisation error!")
 			os.Exit(1)
 		}
 

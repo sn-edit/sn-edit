@@ -157,14 +157,14 @@ func RequestScopeDataFromInstance(scopeName string) (string, error) {
 	err = json.Unmarshal(response, &responseResult)
 
 	if err != nil {
-		fmt.Println("There was an error while unmarshalling the response!", err)
+		log.WithFields(log.Fields{"error": err}).Error("Error while unmarshalling JSON data!")
 		return "", err
 	}
 
 	result, err := dyno.Get(responseResult, "result")
 
 	if err != nil {
-		fmt.Println("Error getting the result key!", err)
+		log.WithFields(log.Fields{"error": err}).Error("Error while finding the result key!")
 		return "", err
 	}
 

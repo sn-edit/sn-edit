@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/0x111/sn-edit/api"
 	"github.com/0x111/sn-edit/conf"
 	"github.com/0x111/sn-edit/db"
@@ -75,14 +74,14 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		err = json.Unmarshal(response, &responseResult)
 
 		if err != nil {
-			fmt.Println("There was an error while unmarshalling the response!", err)
+			log.WithFields(log.Fields{"error": err}).Error("There was an error while unmarshalling the response!")
 			return
 		}
 
 		result, err := dyno.Get(responseResult, "result")
 
 		if err != nil {
-			fmt.Println("Error getting the result key!", err)
+			log.WithFields(log.Fields{"error": err}).Error("Error getting the result key!")
 			return
 		}
 

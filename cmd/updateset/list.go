@@ -32,7 +32,7 @@ func ListCommand(cmd *cobra.Command, scopeName string) {
 	response, err := api.Get(listUpdateSetEndpoint)
 
 	if err != nil {
-		fmt.Println("ERROR", err)
+		log.WithFields(log.Fields{"error": err}).Error("Error during the request to the instance!")
 		return
 	}
 
@@ -41,14 +41,14 @@ func ListCommand(cmd *cobra.Command, scopeName string) {
 	err = json.Unmarshal(response, &responseResult)
 
 	if err != nil {
-		fmt.Println("There was an error while unmarshalling the response!", err)
+		log.WithFields(log.Fields{"error": err}).Error("There was an error while unmarshalling the response!")
 		return
 	}
 
 	result, err := dyno.Get(responseResult, "result", "updateSet")
 
 	if err != nil {
-		fmt.Println("Error getting the result key!", err)
+		log.WithFields(log.Fields{"error": err}).Error("Error while finding the result key!")
 		return
 	}
 

@@ -66,8 +66,7 @@ func ValidateConfig() {
 
 	for _, key := range requiredKeys {
 		if !config.IsSet(key) {
-			fmt.Println("Invalid config file detected!")
-			fmt.Printf("The key %s is required, but could not be found! See the sample file for reference!\n", key)
+			log.WithFields(log.Fields{"error": fmt.Sprintf("The key %s is required, but could not be found! See the sample file for reference!", key)}).Error("Invalid config file detected!")
 			os.Exit(1)
 		}
 	}
