@@ -25,6 +25,9 @@ var rootCmd = &cobra.Command{
 	Long: `sn-edit provides you a simple and easy way to edit and sync your files from your Servicenow instance
 the app is lightweight and easy to use. It will give you a lot of options to work on your code locally, while syncing
 to Servicenow.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
 }
 
 func er(msg interface{}) {
