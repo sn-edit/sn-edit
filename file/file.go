@@ -9,10 +9,10 @@ import (
 )
 
 // Write The contents of the script to a file
-func WriteFile(tableName string, scopeName string, fieldSysName string, fieldName string, extension string, contents []byte) error {
-	filePath := GenerateFilePath(tableName, scopeName, fieldSysName, fieldName, extension)
+func WriteFile(tableName string, scopeName string, uniqueKeyName string, fieldName string, extension string, contents []byte) error {
+	filePath := GenerateFilePath(tableName, scopeName, uniqueKeyName, fieldName, extension)
 
-	if err := FileExists(filePath); err != nil {
+	if err := Exists(filePath); err != nil {
 		log.WithFields(log.Fields{"error": err, "filepath": filePath}).Error("There was an error while checking for the file existence!")
 		return err
 	}
@@ -39,7 +39,7 @@ func ReadFile(filename string) ([]byte, error) {
 }
 
 // Returns error if the file exists, nil if it does not exist
-func FileExists(filePath string) error {
+func Exists(filePath string) error {
 	_, err := os.Stat(filePath)
 
 	if !os.IsNotExist(err) {
@@ -49,9 +49,9 @@ func FileExists(filePath string) error {
 	return nil
 }
 
-func GenerateFilePath(tableName string, scopeName string, fieldSysName string, fieldName string, extension string) string {
+func GenerateFilePath(tableName string, scopeName string, uniqueFieldName string, fieldName string, extension string) string {
 	config := conf.GetConfig()
-	return config.GetString("app.core.root_directory") + string(os.PathSeparator) + scopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + FilterSpecialChars(fieldSysName) + string(os.PathSeparator) + fieldName + "." + extension
+	return config.GetString("app.core.root_directory") + string(os.PathSeparator) + scopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + FilterSpecialChars(uniqueFieldName) + string(os.PathSeparator) + fieldName + "." + extension
 }
 
 func FilterSpecialChars(name string) string {

@@ -63,7 +63,7 @@ func initConfig() {
 
 	// do not write out text for json output
 	if err := viper.ReadInConfig(); err == nil {
-		log.WithFields(log.Fields{"config": viper.ConfigFileUsed()}).Debug("Using config file")
+		log.WithFields(log.Fields{"config": viper.ConfigFileUsed()}).Info("Using config file")
 	}
 
 	if outputJSON, _ := rootCmd.Flags().GetBool("json"); outputJSON {

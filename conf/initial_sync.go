@@ -10,7 +10,7 @@ func BuildTables() {
 	config := GetConfig()
 
 	sqlStmt := `
-    CREATE TABLE IF NOT EXISTS entry(id integer primary key autoincrement, sys_id text, sys_name text, unique_key text, entry_table integer, sys_scope integer, last_modified integer, FOREIGN KEY(entry_table) REFERENCES entry_table(id), FOREIGN KEY(sys_scope) REFERENCES entry_scope(id));
+    CREATE TABLE IF NOT EXISTS entry(id integer primary key autoincrement, sys_id text, unique_key text, entry_table integer, sys_scope integer, last_modified integer, FOREIGN KEY(entry_table) REFERENCES entry_table(id), FOREIGN KEY(sys_scope) REFERENCES entry_scope(id));
     CREATE TABLE IF NOT EXISTS entry_table(id integer primary key autoincrement, sys_id text, name text, sys_scope integer, FOREIGN KEY(sys_scope) REFERENCES entry_scope(id));
     CREATE TABLE IF NOT EXISTS entry_scope(id integer primary key autoincrement, sys_id text, name text, update_set integer);
     CREATE TABLE IF NOT EXISTS update_set(id integer primary key autoincrement, sys_id text, name text, sys_scope integer, FOREIGN KEY(sys_scope) REFERENCES entry_scope(id));

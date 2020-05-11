@@ -54,7 +54,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		fields := conf.GetTableFieldNames(tablesConfig, tableName)
 
 		// enforce sys_id and scope if not present already
-		fields = conf.EnforceFields(fields)
+		fields = conf.EnforceFields(tablesConfig, tableName, fields)
 
 		// setup the download url
 		downloadURL := config.GetString("app.core.rest.url") + "/api/now/table/" + tableName + "/" + sysID + "?sysparm_fields=" + strings.Join(fields, ",")
@@ -86,18 +86,24 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 
 		// iterate through the entries
 		//for _, entry := range results {
-		fieldSysName, err := dyno.GetString(result, "sys_name")
+		uniqueKey, err := conf.GetUniqueKeyForTable(tablesConfig, tableName)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "sys_name"}).Error("There was an error while getting the unique key!")
+			return
 		}
 
-		log.WithFields(log.Fields{"name": fieldSysName}).Debug("Entry identified!")
+		uniqueKeyName, err := dyno.GetString(result, uniqueKey)
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err, "key": "unique_key"}).Error("There was an error while getting the unique key!")
+		}
+
+		log.WithFields(log.Fields{"name": uniqueKeyName}).Debug("Entry identified!")
 
 		fieldScopeName, err := dyno.GetString(result, "sys_scope.name")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "download.sys_scope.name"}).Error("There was an error while getting the unique key!")
+			log.WithFields(log.Fields{"error": err, "key": "download.sys_scope.name"}).Error("There was an error while getting the key!")
 			return
 		}
 
@@ -105,7 +111,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		fieldScopeName = strings.ToLower(fieldScopeName)
 
 		// write entry to the db
-		err = db.WriteEntry(tableName, fieldSysName, sysID, fieldScopeName)
+		err = db.WriteEntry(tableName, uniqueKeyName, sysID, fieldScopeName)
 
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Debug("Error writing entry to the database!")
@@ -113,7 +119,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		}
 
 		// create directory for sys_name
-		directoryPath := config.GetString("app.core.root_directory") + string(os.PathSeparator) + fieldScopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + file.FilterSpecialChars(fieldSysName)
+		directoryPath := config.GetString("app.core.root_directory") + string(os.PathSeparator) + fieldScopeName + string(os.PathSeparator) + tableName + string(os.PathSeparator) + file.FilterSpecialChars(uniqueKeyName)
 		_, err = directory.CreateDirectoryStructure(directoryPath)
 
 		if err != nil {
@@ -136,7 +142,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 
 			fieldExtension := conf.GetFieldExtension(tablesConfig, tableName, fieldName)
 
-			err = file.WriteFile(tableName, fieldScopeName, fieldSysName, fieldName, fieldExtension, []byte(fieldContent))
+			err = file.WriteFile(tableName, fieldScopeName, uniqueKeyName, fieldName, fieldExtension, []byte(fieldContent))
 
 			if err != nil {
 				log.WithFields(log.Fields{"error": err}).Error("File writing error! Check permissions please!")
