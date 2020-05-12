@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/0x111/sn-edit/cmd/updateset"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/cmd/updateset"
 	"github.com/spf13/cobra"
 )
 

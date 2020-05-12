@@ -1,4 +1,4 @@
-module github.com/0x111/sn-edit
+module github.com/sn-edit/sn-edit
 
 go 1.14
 

@@ -3,9 +3,9 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"github.com/0x111/sn-edit/conf"
-	"github.com/0x111/sn-edit/file"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/conf"
+	"github.com/sn-edit/sn-edit/file"
 	"time"
 )
 

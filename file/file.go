@@ -1,9 +1,9 @@
 package file
 
 import (
-	"github.com/0x111/sn-edit/conf"
 	"github.com/kennygrant/sanitize"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/conf"
 	"io/ioutil"
 	"os"
 )

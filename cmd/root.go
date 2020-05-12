@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/0x111/sn-edit/api"
-	"github.com/0x111/sn-edit/conf"
 	"github.com/mbndr/figlet4go"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/api"
+	"github.com/sn-edit/sn-edit/conf"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -61,13 +61,16 @@ func initConfig() {
 		PrintBanner()
 	}
 
-	// do not write out text for json output
-	if err := viper.ReadInConfig(); err == nil {
-		log.WithFields(log.Fields{"config": viper.ConfigFileUsed()}).Info("Using config file")
-	}
+	// Output to stdout instead of the default stderr
+	log.SetOutput(os.Stdout)
 
 	if outputJSON, _ := rootCmd.Flags().GetBool("json"); outputJSON {
 		log.SetFormatter(&log.JSONFormatter{})
+	}
+
+	// do not write out text for json output
+	if err := viper.ReadInConfig(); err == nil {
+		log.WithFields(log.Fields{"config": viper.ConfigFileUsed()}).Info("Using config file")
 	}
 
 	conf.SetConfig(viper.GetViper())

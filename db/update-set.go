@@ -2,8 +2,8 @@ package db
 
 import (
 	"database/sql"
-	"github.com/0x111/sn-edit/conf"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/conf"
 )
 
 func WriteUpdateSet(updateSetName string, updateSetSysID string, updateSetScope string) error {

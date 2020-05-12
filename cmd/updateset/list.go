@@ -3,11 +3,11 @@ package updateset
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/0x111/sn-edit/api"
-	"github.com/0x111/sn-edit/conf"
-	"github.com/0x111/sn-edit/db"
 	"github.com/icza/dyno"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/api"
+	"github.com/sn-edit/sn-edit/conf"
+	"github.com/sn-edit/sn-edit/db"
 	"github.com/spf13/cobra"
 )
 

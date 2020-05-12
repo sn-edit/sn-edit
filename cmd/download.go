@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"encoding/json"
-	"github.com/0x111/sn-edit/api"
-	"github.com/0x111/sn-edit/conf"
-	"github.com/0x111/sn-edit/db"
-	"github.com/0x111/sn-edit/directory"
-	"github.com/0x111/sn-edit/file"
 	"github.com/icza/dyno"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/api"
+	"github.com/sn-edit/sn-edit/conf"
+	"github.com/sn-edit/sn-edit/db"
+	"github.com/sn-edit/sn-edit/directory"
+	"github.com/sn-edit/sn-edit/file"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
