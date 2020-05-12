@@ -1,10 +1,10 @@
 package api
 
 import (
-	"github.com/0x111/sn-edit/conf"
-	"github.com/0x111/sn-edit/xor"
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/conf"
+	"github.com/sn-edit/sn-edit/xor"
 	"os"
 )
 

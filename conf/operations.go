@@ -106,8 +106,40 @@ func GetFieldExtension(tablesConfig []interface{}, tableName string, fieldName s
 	return ""
 }
 
-func EnforceFields(fields []string) []string {
-	requiredFields := []string{"sys_id", "sys_scope.name"}
+func GetUniqueKeyForTable(tablesConfig []interface{}, tableName string) (string, error) {
+	var uniqueKey string
+	// iterate tables from the configuration file
+	for _, value := range tablesConfig {
+		// get the table name from this and filter based on that
+		table, err := dyno.GetString(value, "name")
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err}).Error("Was not able to find the key!")
+			os.Exit(1)
+		}
+
+		if table == tableName {
+			// get the fields
+			uniqueKey, err = dyno.GetString(value, "unique_key")
+
+			if err != nil {
+				log.WithFields(log.Fields{"error": err}).Error("Was not able to find the key!")
+				os.Exit(1)
+			}
+		}
+	}
+	return uniqueKey, nil
+}
+
+func EnforceFields(tablesConfig []interface{}, tableName string, fields []string) []string {
+	uniqueKey, err := GetUniqueKeyForTable(tablesConfig, tableName)
+
+	if err != nil {
+		log.WithFields(log.Fields{"error": err}).Error("Please define a unique key for every table for sn-edit!")
+		os.Exit(1)
+	}
+
+	requiredFields := []string{"sys_id", "sys_scope.name", uniqueKey}
 	for _, requiredField := range requiredFields {
 		if !containsField(fields, requiredField) {
 			fields = append(fields, requiredField)

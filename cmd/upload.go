@@ -3,11 +3,11 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/0x111/sn-edit/api"
-	"github.com/0x111/sn-edit/conf"
-	"github.com/0x111/sn-edit/db"
-	"github.com/0x111/sn-edit/file"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/api"
+	"github.com/sn-edit/sn-edit/conf"
+	"github.com/sn-edit/sn-edit/db"
+	"github.com/sn-edit/sn-edit/file"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -80,7 +80,7 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 		// build data
 		data := make(map[string]interface{})
 
-		found, sysName := db.QuerySysName(tableName, sysID)
+		found, uniqueKeyName := db.QueryUniqueKey(tableName, sysID)
 
 		if !found {
 			log.WithFields(log.Fields{"error": err, "table_name": tableName, "sys_id": sysID}).Error("There was an error while getting the key!")
@@ -99,7 +99,7 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 			// find the extension based on the field and tableName from the config
 			extension := conf.GetFieldExtension(tablesConfig, tableName, cliField)
 			// generate file path to the given file, full path, to read
-			filePath := file.GenerateFilePath(tableName, fileScopeName, sysName, cliField, extension)
+			filePath := file.GenerateFilePath(tableName, fileScopeName, uniqueKeyName, cliField, extension)
 			// get the contents of the file
 			content, err := file.ReadFile(filePath)
 
@@ -127,7 +127,7 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 			uploadURLv2 = uploadURLv2 + "&sysparm_transaction_update_set=" + updateSet
 		}
 
-		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fieldsSlice}).Info("Uploading data to the instance")
+		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fieldsSlice, "scope": fileScopeName}).Info("Uploading data to the instance")
 
 		_, err = api.Put(uploadURLv2, dataJSON)
 

@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/0x111/sn-edit/conf"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/conf"
 )
 
 func Get(url string) ([]byte, error) {

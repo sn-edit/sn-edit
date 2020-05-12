@@ -3,14 +3,14 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"github.com/0x111/sn-edit/conf"
-	"github.com/0x111/sn-edit/file"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/conf"
+	"github.com/sn-edit/sn-edit/file"
 	"time"
 )
 
 // provides methods to handle entries
-func WriteEntry(tableName string, sysName string, sysID string, sysScopeName string) error {
+func WriteEntry(tableName string, uniqueKeyName string, sysID string, sysScopeName string) error {
 	dbc := conf.GetDB()
 	// get table id from name if found
 	// write table data
@@ -51,9 +51,9 @@ func WriteEntry(tableName string, sysName string, sysID string, sysScopeName str
 	}
 
 	// filter name before entry to the db
-	sysName = file.FilterSpecialChars(sysName)
+	uniqueKeyName = file.FilterSpecialChars(uniqueKeyName)
 
-	stmt, err := dbc.Prepare("INSERT INTO entry(sys_id, sys_name, entry_table, sys_scope, last_modified) VALUES(?,?,?,?,?)")
+	stmt, err := dbc.Prepare("INSERT INTO entry(sys_id, unique_key, entry_table, sys_scope, last_modified) VALUES(?,?,?,?,?)")
 	defer stmt.Close()
 
 	if err != nil {
@@ -61,7 +61,7 @@ func WriteEntry(tableName string, sysName string, sysID string, sysScopeName str
 		return err
 	}
 
-	_, err = stmt.Exec(sysID, sysName, tableID, fileScope, time.Now().UnixNano())
+	_, err = stmt.Exec(sysID, uniqueKeyName, tableID, fileScope, time.Now().UnixNano())
 
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("There was an error while executing the query!")
@@ -71,9 +71,9 @@ func WriteEntry(tableName string, sysName string, sysID string, sysScopeName str
 	return nil
 }
 
-func QuerySysName(tableName string, sysID string) (bool, string) {
+func QueryUniqueKey(tableName string, sysID string) (bool, string) {
 	dbc := conf.GetDB()
-	stmt, err := dbc.Prepare("SELECT sys_name FROM entry e LEFT JOIN entry_table t ON e.entry_table=t.id WHERE e.sys_id=? AND t.name=? LIMIT 1")
+	stmt, err := dbc.Prepare("SELECT unique_key FROM entry e LEFT JOIN entry_table t ON e.entry_table=t.id WHERE e.sys_id=? AND t.name=? LIMIT 1")
 	defer stmt.Close()
 
 	if err != nil {
@@ -81,8 +81,8 @@ func QuerySysName(tableName string, sysID string) (bool, string) {
 		return false, ""
 	}
 
-	sysName := ""
-	err = stmt.QueryRow(sysID, tableName).Scan(&sysName)
+	uniqueKey := ""
+	err = stmt.QueryRow(sysID, tableName).Scan(&uniqueKey)
 
 	if err != nil {
 		log.WithFields(log.Fields{"warn": err}).Debug("The script was not found in the database!")
@@ -95,7 +95,7 @@ func QuerySysName(tableName string, sysID string) (bool, string) {
 		}
 	}
 
-	return true, sysName
+	return true, uniqueKey
 }
 
 func GetEntryScopeName(tableName string, sysID string) (bool, string) {
@@ -125,9 +125,10 @@ func GetEntryScopeName(tableName string, sysID string) (bool, string) {
 	return true, scopeName
 }
 
+// todo: Implement update of existing entry with the updated fields
 func EntryExists(tableID string, sysID string, sysScope string) bool {
 	dbc := conf.GetDB()
-	stmt, err := dbc.Prepare("SELECT sys_name FROM entry WHERE sys_id=? AND entry_table=? AND sys_scope=? LIMIT 1")
+	stmt, err := dbc.Prepare("SELECT unique_key FROM entry WHERE sys_id=? AND entry_table=? AND sys_scope=? LIMIT 1")
 	defer stmt.Close()
 
 	if err != nil {

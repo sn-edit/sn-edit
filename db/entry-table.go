@@ -3,10 +3,10 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
-	"github.com/0x111/sn-edit/api"
-	"github.com/0x111/sn-edit/conf"
 	"github.com/icza/dyno"
 	log "github.com/sirupsen/logrus"
+	"github.com/sn-edit/sn-edit/api"
+	"github.com/sn-edit/sn-edit/conf"
 )
 
 func WriteTable(tableName string) error {

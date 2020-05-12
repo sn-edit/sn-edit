@@ -1,6 +1,6 @@
 app:
   core:
-    log_level: debug
+    log_level: info
     rate_limit: 2
     db:
       path: /path/to/db/file
@@ -14,6 +14,7 @@ app:
     root_directory: /path/to/scripts/folder/tmp
   tables:
     - name: sys_script
+      unique_key: sys_name
       fields:
         - extension: txt
           field: sys_id
@@ -22,6 +23,7 @@ app:
         - extension: txt
           field: sys_name
     - name: sys_script_include
+      unique_key: sys_name
       fields:
         - extension: txt
           field: sys_id
