@@ -103,8 +103,10 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 		fieldScopeName, err := dyno.GetString(result, "sys_scope.name")
 
 		if err != nil {
+			// if no scope found, fallback to global
+			fieldScopeName = "global"
 			log.WithFields(log.Fields{"error": err, "key": "download.sys_scope.name"}).Error("There was an error while getting the key!")
-			return
+			//return
 		}
 
 		// scope names are always lowercase
