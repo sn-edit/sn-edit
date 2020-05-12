@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"runtime"
+	"strings"
 )
 
 var (
@@ -26,7 +28,7 @@ var rootCmd = &cobra.Command{
 	Long: `sn-edit provides you a simple and easy way to edit and sync your files from your Servicenow instance
 the app is lightweight and easy to use. It will give you a lot of options to work on your code locally, while syncing
 to Servicenow.`,
-	Version: fmt.Sprintf("%s %s\n", version.GetVersion(), version.GetCommit()),
+	Version: fmt.Sprintf("%s %s %s/%s\n", version.GetVersion(), strings.TrimSpace(version.GetCommit()), runtime.GOOS, runtime.GOARCH),
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
