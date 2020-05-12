@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sn-edit/sn-edit/api"
 	"github.com/sn-edit/sn-edit/conf"
+	"github.com/sn-edit/sn-edit/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -25,6 +26,7 @@ var rootCmd = &cobra.Command{
 	Long: `sn-edit provides you a simple and easy way to edit and sync your files from your Servicenow instance
 the app is lightweight and easy to use. It will give you a lot of options to work on your code locally, while syncing
 to Servicenow.`,
+	Version: fmt.Sprintf("%s %s\n", version.GetVersion(), version.GetCommit()),
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
@@ -128,7 +130,7 @@ func init() {
 	updateSetCmd.Flags().BoolP("set", "", false, "use this to set update sets for the scope provided")
 	updateSetCmd.Flags().StringP("scope", "", "global", "the name of the scope (example: \"global\")")
 	updateSetCmd.Flags().StringP("update_set", "", "global", "the sys_id of the update_set (example: \"<sys_id>\")")
-	rootCmd.AddCommand(versionCmd)
+	//rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(downloadEntryCmd)
 	rootCmd.AddCommand(uploadEntryCmd)
 	rootCmd.AddCommand(updateSetCmd)

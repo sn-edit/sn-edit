@@ -1,5 +1,6 @@
 package version
 
+// todo use git tagging after release
 const version = "v0.2"
 
 var commit string
