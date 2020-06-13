@@ -126,7 +126,7 @@ func GetEntryScopeName(tableName string, sysID string) (bool, string) {
 }
 
 // todo: Implement update of existing entry with the updated fields
-func EntryExists(tableID string, sysID string, sysScope string) bool {
+func EntryExists(tableID string, sysID string, sysScope int64) bool {
 	dbc := conf.GetDB()
 	stmt, err := dbc.Prepare("SELECT unique_key FROM entry WHERE sys_id=? AND entry_table=? AND sys_scope=? LIMIT 1")
 	defer stmt.Close()
