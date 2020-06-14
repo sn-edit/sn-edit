@@ -135,6 +135,7 @@ func init() {
 	updateSetCmd.Flags().StringP("update_set", "", "global", "the sys_id of the update_set (example: \"<sys_id>\")")
 	// execute scripts flags
 	executeScriptsCmd.Flags().StringP("file", "", "", "recommended use is a fullpath to the file, but you can also specify relative paths from the POV of the binary. (example: \"/home/user/background-scripts/some-script.js\")")
+	executeScriptsCmd.Flags().StringP("scope", "", "global", "the name of the scope, defaults to global (example: \"global\")")
 	//rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(downloadEntryCmd)
 	rootCmd.AddCommand(uploadEntryCmd)

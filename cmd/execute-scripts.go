@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sn-edit/sn-edit/conf"
+	"github.com/sn-edit/sn-edit/db"
 	"github.com/sn-edit/sn-edit/file"
 	"github.com/sn-edit/sn-edit/xor"
 	"github.com/spf13/cobra"
@@ -33,6 +34,19 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 
 		if len(scriptFile) == 0 {
 			log.WithFields(log.Fields{"error": err}).Error("Please provide a file!")
+			return
+		}
+
+		scopeName, err := cmd.Flags().GetString("scope")
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err}).Error("Parsing error!")
+			return
+		}
+
+		scopeSysID, err := db.RequestScopeDataFromInstance(scopeName)
+
+		if err != nil {
 			return
 		}
 
@@ -150,7 +164,7 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		form.Add("script", string(dat))
 		form.Add("record_for_rollback", "on")
 		form.Add("quota_managed_transaction", "on")
-		form.Add("sys_scope", "global")
+		form.Add("sys_scope", scopeSysID)
 		form.Add("runscript", "Run script")
 		form.Add("sysparm_ck", ckToken)
 
@@ -164,7 +178,7 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		defer resp4.Body.Close()
 		// read the result
 		body, err = ioutil.ReadAll(resp4.Body)
-
+		fmt.Println("SCOPE: ", scopeSysID)
 		if outputJSON, _ := rootCmd.Flags().GetBool("json"); !outputJSON {
 			fmt.Println(string(body))
 		} else {
