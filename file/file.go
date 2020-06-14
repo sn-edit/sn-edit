@@ -1,6 +1,7 @@
 package file
 
 import (
+	"errors"
 	"github.com/kennygrant/sanitize"
 	log "github.com/sirupsen/logrus"
 	"github.com/sn-edit/sn-edit/conf"
@@ -12,7 +13,8 @@ import (
 func WriteFile(tableName string, scopeName string, uniqueKeyName string, fieldName string, extension string, contents []byte) error {
 	filePath := GenerateFilePath(tableName, scopeName, uniqueKeyName, fieldName, extension)
 
-	if err := Exists(filePath); err != nil {
+	if exists := Exists(filePath); exists == false {
+		err := errors.New("file_not_found")
 		log.WithFields(log.Fields{"error": err, "filepath": filePath}).Error("There was an error while checking for the file existence!")
 		return err
 	}
@@ -39,14 +41,14 @@ func ReadFile(filename string) ([]byte, error) {
 }
 
 // Returns error if the file exists, nil if it does not exist
-func Exists(filePath string) error {
-	_, err := os.Stat(filePath)
+func Exists(filePath string) bool {
+	info, err := os.Stat(filePath)
 
-	if !os.IsNotExist(err) {
-		return err
+	if os.IsNotExist(err) {
+		return false
 	}
 
-	return nil
+	return !info.IsDir()
 }
 
 func GenerateFilePath(tableName string, scopeName string, uniqueFieldName string, fieldName string, extension string) string {
