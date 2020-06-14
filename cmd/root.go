@@ -28,7 +28,7 @@ var rootCmd = &cobra.Command{
 	Long: `sn-edit provides you a simple and easy way to edit and sync your files from your Servicenow instance
 the app is lightweight and easy to use. It will give you a lot of options to work on your code locally, while syncing
 to Servicenow.`,
-	Version: fmt.Sprintf("%s %s %s/%s\n", version.GetVersion(), strings.TrimSpace(version.GetCommit()), runtime.GOOS, runtime.GOARCH),
+	Version: fmt.Sprintf("%s %s %s/%s", version.GetVersion(), strings.TrimSpace(version.GetCommit()), runtime.GOOS, runtime.GOARCH),
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
@@ -130,6 +130,7 @@ func init() {
 	// update set flags
 	updateSetCmd.Flags().BoolP("list", "", false, "use this to list update sets for the scope provided")
 	updateSetCmd.Flags().BoolP("set", "", false, "use this to set update sets for the scope provided")
+	updateSetCmd.Flags().BoolP("truncate", "", false, "use this to truncate the update sets and force the reload from the instance")
 	updateSetCmd.Flags().StringP("scope", "", "global", "the name of the scope (example: \"global\")")
 	updateSetCmd.Flags().StringP("update_set", "", "global", "the sys_id of the update_set (example: \"<sys_id>\")")
 	//rootCmd.AddCommand(versionCmd)

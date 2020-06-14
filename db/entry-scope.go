@@ -34,27 +34,27 @@ func WriteScope(sysID string, scopeName string) error {
 	return nil
 }
 
-func QueryScope(sysID string) (bool, string) {
+func QueryScope(sysID string) (bool, int64) {
 	dbc := conf.GetDB()
 	stmt, err := dbc.Prepare("SELECT id FROM entry_scope WHERE sys_id=? LIMIT 1")
 	defer stmt.Close()
 
 	if err != nil {
 		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
-		return false, ""
+		return false, 0
 	}
 
-	id := ""
+	id := int64(0)
 	err = stmt.QueryRow(sysID).Scan(&id)
 
 	if err != nil {
 		log.WithFields(log.Fields{"warn": err}).Debug("The scope was not found in the database!")
 		if err == sql.ErrNoRows {
 			// no rows found, it does not exist
-			return false, ""
+			return false, 0
 		} else {
 			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
-			return false, ""
+			return false, 0
 		}
 	}
 

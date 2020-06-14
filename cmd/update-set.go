@@ -36,6 +36,21 @@ Attention: An invalid scope name defaults to global scope. I warned you!`,
 			return
 		}
 
+		// truncate update sets globally
+		truncate, err := cmd.Flags().GetBool("truncate")
+
+		if err != nil {
+			log.WithFields(log.Fields{"error": err, "flag": "truncate"}).Error("Parsing error!")
+			return
+		}
+
+		// refresh flag tryncates update set data in the database
+		// use this carefully
+		if truncate {
+			updateset.TruncateUpdateSets()
+			return
+		}
+
 		if list {
 			updateset.ListCommand(cmd, scopeName)
 			return
