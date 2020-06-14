@@ -128,13 +128,17 @@ func init() {
 	uploadEntryCmd.Flags().StringP("fields", "f", "", "provide one or more fields, comma separated (example: \"name,script,active\")")
 	uploadEntryCmd.Flags().StringP("update_set", "", "", "the sys_id of an update set, you need to list the update sets before using this (example: \"<sys_id>\")")
 	// update set flags
-	updateSetCmd.Flags().BoolP("list", "", false, "use this to list update sets for the scope provided")
-	updateSetCmd.Flags().BoolP("set", "", false, "use this to set update sets for the scope provided")
+	updateSetCmd.Flags().BoolP("list", "", false, "list update sets for the scope provided")
+	updateSetCmd.Flags().BoolP("set", "", false, "set update sets for the scope provided")
 	updateSetCmd.Flags().BoolP("truncate", "", false, "use this to truncate the update sets and force the reload from the instance")
 	updateSetCmd.Flags().StringP("scope", "", "global", "the name of the scope (example: \"global\")")
 	updateSetCmd.Flags().StringP("update_set", "", "global", "the sys_id of the update_set (example: \"<sys_id>\")")
+	// execute scripts flags
+	executeScriptsCmd.Flags().StringP("file", "", "", "recommended use is a fullpath to the file, but you can also specify relative paths from the POV of the binary. (example: \"/home/user/background-scripts/some-script.js\")")
+	executeScriptsCmd.Flags().StringP("scope", "", "global", "the name of the scope, defaults to global (example: \"global\")")
 	//rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(downloadEntryCmd)
 	rootCmd.AddCommand(uploadEntryCmd)
 	rootCmd.AddCommand(updateSetCmd)
+	rootCmd.AddCommand(executeScriptsCmd)
 }
