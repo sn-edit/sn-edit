@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/icza/dyno"
 	log "github.com/sirupsen/logrus"
@@ -129,22 +128,17 @@ func RequestScopeData(scopeApiURL string) ([]byte, error) {
 }
 
 // returns scope sys_id
-func RequestScopeDataFromInstance(scopeName string) (string, error) {
+func RequestScopeDataFromInstance(sysScopeSysID string) (string, error) {
 	config := conf.GetConfig()
-
-	// check if entry exists
-	if exists, _, sysID := ScopeExists(scopeName); exists == true {
-		err := errors.New("scope_exists")
-		log.WithFields(log.Fields{"error": err}).Debug("Scope already exists, no insert!")
-		return sysID, nil
-	}
 
 	// fields required here
 	fields := []string{"scope", "sys_id"}
 
-	query := fmt.Sprintf("sysparm_query=scope=%s&sysparm_fields=%s", scopeName, strings.Join(fields, ","))
+	query := fmt.Sprintf("sysparm_query=sys_id=%s&sysparm_fields=%s", sysScopeSysID, strings.Join(fields, ","))
 
 	endpoint := config.GetString("app.core.rest.url") + "/api/now/table/sys_scope?" + query
+
+	log.WithFields(log.Fields{"endpoint": endpoint}).Debug("Requesting scope data")
 
 	response, err := RequestScopeData(endpoint)
 
@@ -172,7 +166,7 @@ func RequestScopeDataFromInstance(scopeName string) (string, error) {
 	// response is an array...
 	for _, res := range result.([]interface{}) {
 		// get scope name
-		scopeName, err = dyno.GetString(res, "scope")
+		scopeName, err := dyno.GetString(res, "scope")
 
 		if err != nil {
 			log.WithFields(log.Fields{"error": err, "key": "sys_scope.scope"}).Error("Key parsing error!")

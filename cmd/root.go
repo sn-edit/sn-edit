@@ -53,8 +53,8 @@ func initConfig() {
 		}
 
 		// Search config in home directory with name ".sn-edit" (without extension).
-		viper.AddConfigPath(home)
 		viper.AddConfigPath("./_config/")
+		viper.AddConfigPath(home)
 		viper.SetConfigName(".sn-edit")
 	}
 

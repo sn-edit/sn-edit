@@ -12,15 +12,24 @@ import (
 )
 
 func ListCommand(cmd *cobra.Command, scopeName string) {
+	var err error
 	config := conf.GetConfig()
+	sysID := ""
+	exists, _, sysID := db.ScopeExists(scopeName)
+	// check if entry exists
 
-	scopeSysID, err := db.RequestScopeDataFromInstance(scopeName)
+	if exists == true {
+		log.WithFields(log.Fields{"message": "scope exists"}).Debug("Scope already exists, no insert!")
+		//return sysID, nil
+	} else {
+		sysID, err = db.RequestScopeDataFromInstance(scopeName)
 
-	if err != nil {
-		return
+		if err != nil {
+			return
+		}
 	}
 
-	found, scopeID := db.QueryScope(scopeSysID)
+	found, scopeID := db.QueryScope(sysID)
 
 	if !found {
 		log.WithFields(log.Fields{"error": "scope_not_found", "found": false, "scope_name": scopeName}).Error("Could not find scope in the DB!")
@@ -95,7 +104,7 @@ func ListCommand(cmd *cobra.Command, scopeName string) {
 	}
 
 	// make request to the instance (to get an updated list of scopes for the scope in the CLI)
-	listUpdateSetEndpoint := config.GetString("app.core.rest.url") + "/api/now/ui/concoursepicker/updateset?sysparm_transaction_scope=" + scopeSysID
+	listUpdateSetEndpoint := config.GetString("app.core.rest.url") + "/api/now/ui/concoursepicker/updateset?sysparm_transaction_scope=" + sysID
 
 	response, err := api.Get(listUpdateSetEndpoint)
 
