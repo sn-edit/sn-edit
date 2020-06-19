@@ -13,10 +13,10 @@ import (
 func WriteFile(tableName string, scopeName string, uniqueKeyName string, fieldName string, extension string, contents []byte) error {
 	filePath := GenerateFilePath(tableName, scopeName, uniqueKeyName, fieldName, extension)
 
+	// just a debug/warning
 	if exists := Exists(filePath); exists == false {
 		err := errors.New("file_not_found")
-		log.WithFields(log.Fields{"error": err, "filepath": filePath}).Error("There was an error while checking for the file existence!")
-		return err
+		log.WithFields(log.Fields{"error": err, "filepath": filePath}).Debug("There was an error while checking for the file existence!")
 	}
 
 	err := ioutil.WriteFile(filePath, contents, 0644)

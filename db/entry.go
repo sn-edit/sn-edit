@@ -10,7 +10,7 @@ import (
 )
 
 // provides methods to handle entries
-func WriteEntry(tableName string, uniqueKeyName string, sysID string, sysScopeName string) error {
+func WriteEntry(tableName string, uniqueKeyName string, sysID string, sysScopeSysID string) error {
 	dbc := conf.GetDB()
 	// get table id from name if found
 	// write table data
@@ -29,7 +29,7 @@ func WriteEntry(tableName string, uniqueKeyName string, sysID string, sysScopeNa
 	}
 
 	// write scope for file
-	sysScope, err := RequestScopeDataFromInstance(sysScopeName)
+	sysScope, err := RequestScopeDataFromInstance(sysScopeSysID)
 
 	if err != nil {
 		return err

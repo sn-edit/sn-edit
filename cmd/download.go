@@ -96,27 +96,35 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 
 		if err != nil {
 			log.WithFields(log.Fields{"error": err, "key": "unique_key"}).Error("There was an error while getting the unique key!")
+			return
 		}
 
 		log.WithFields(log.Fields{"name": uniqueKeyName}).Debug("Entry identified!")
 
-		fieldScopeName, err := dyno.GetString(result, "sys_scope.name")
+		fieldScopeSysID, err := dyno.GetString(result, "sys_scope.sys_id")
 
 		if err != nil {
 			// if no scope found, fallback to global
-			fieldScopeName = "global"
-			log.WithFields(log.Fields{"error": err, "key": "download.sys_scope.name"}).Error("There was an error while getting the key!")
+			fieldScopeSysID = "global"
+			log.WithFields(log.Fields{"error": err, "key": "download.sys_scope.name"}).Debug("There was an error while getting the key!")
 			//return
 		}
 
-		// scope names are always lowercase
-		fieldScopeName = strings.ToLower(fieldScopeName)
-
 		// write entry to the db
-		err = db.WriteEntry(tableName, uniqueKeyName, sysID, fieldScopeName)
+		err = db.WriteEntry(tableName, uniqueKeyName, sysID, fieldScopeSysID)
 
 		if err != nil {
 			log.WithFields(log.Fields{"error": err}).Debug("Error writing entry to the database!")
+			return
+		}
+
+		found, fieldScopeName := db.GetScopeNameFromSysID(fieldScopeSysID)
+
+		// scope names in lowercase in folder structure
+		fieldScopeName = strings.ToLower(fieldScopeName)
+
+		if !found {
+			log.WithFields(log.Fields{"error": err, "name": fieldScopeName, "sys_id": fieldScopeSysID}).Debug("Could not find scope!")
 			return
 		}
 
@@ -140,6 +148,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 
 			if err != nil {
 				log.WithFields(log.Fields{"error": err, "key": fieldName}).Error("There was an error while getting the key!")
+				return
 			}
 
 			fieldExtension := conf.GetFieldExtension(tablesConfig, tableName, fieldName)
@@ -148,6 +157,7 @@ Otherwise sn-edit will not be able to determine the location or download the dat
 
 			if err != nil {
 				log.WithFields(log.Fields{"error": err}).Error("File writing error! Check permissions please!")
+				return
 			}
 		}
 

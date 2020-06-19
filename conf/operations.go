@@ -139,7 +139,7 @@ func EnforceFields(tablesConfig []interface{}, tableName string, fields []string
 		os.Exit(1)
 	}
 
-	requiredFields := []string{"sys_id", "sys_scope.name", uniqueKey}
+	requiredFields := []string{"sys_id", "sys_scope.name", "sys_scope.sys_id", uniqueKey}
 	for _, requiredField := range requiredFields {
 		if !containsField(fields, requiredField) {
 			fields = append(fields, requiredField)
