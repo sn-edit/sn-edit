@@ -141,7 +141,7 @@ func EnforceFields(tablesConfig []interface{}, tableName string, fields []string
 
 	requiredFields := []string{"sys_id", "sys_scope.name", "sys_scope.sys_id", uniqueKey}
 	for _, requiredField := range requiredFields {
-		if !containsField(fields, requiredField) {
+		if !ContainsField(fields, requiredField) {
 			fields = append(fields, requiredField)
 		}
 	}
@@ -149,7 +149,7 @@ func EnforceFields(tablesConfig []interface{}, tableName string, fields []string
 	return fields
 }
 
-func containsField(fields []string, key string) bool {
+func ContainsField(fields []string, key string) bool {
 	for _, field := range fields {
 		if field == key {
 			return true

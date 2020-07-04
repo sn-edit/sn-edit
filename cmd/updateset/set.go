@@ -49,5 +49,8 @@ func SetCommand(scopeName string, updateSetSysID string) {
 		return
 	}
 
+	// call truncate to clear local cache and trigger a load from instance if everything is fine or not
+	TruncateUpdateSets()
+
 	log.WithFields(log.Fields{"scope": scopeName, "updateset": log.Fields{"name": name, "sys_id": sysID}}).Info("Success updating the default update set for scope!")
 }
