@@ -17,8 +17,7 @@ import (
 
 var (
 	// Used for flags.
-	cfgFile     string
-	userLicense string
+	cfgFile string
 )
 
 // commands list
@@ -62,7 +61,9 @@ func initConfig() {
 
 	// exclude banner if json output requested
 	if outputJSON, _ := rootCmd.Flags().GetBool("json"); !outputJSON {
-		PrintBanner()
+		if runtime.GOOS != "windows" {
+			PrintBanner()
+		}
 	}
 
 	// Output to stdout instead of the default stderr

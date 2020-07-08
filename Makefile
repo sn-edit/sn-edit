@@ -13,7 +13,7 @@ darwin_amd64:
 
 .PHONY: windows_amd64
 windows_amd64:
-	CGO_ENABLED=1 CC=/usr/local/bin/x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -v -a -gcflags "all=-trimpath=$$PWD;$$HOME" -asmflags "all=-trimpath=$$PWD;$$HOME" -ldflags "-X 'github.com/sn-edit/sn-edit/version.commit=$(GIT_COMMIT)''" -o build/$(binary_name)-windows-amd64.exe
+	CGO_ENABLED=1 CC=/usr/local/bin/x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -v -a -gcflags "all=-trimpath=$$PWD;$$HOME" -asmflags "all=-trimpath=$$PWD;$$HOME" -ldflags "-X 'github.com/sn-edit/sn-edit/version.commit=$(GIT_COMMIT)'" -o build/$(binary_name)-windows-amd64.exe
 
 .PHONY: checksums
 checksums:
