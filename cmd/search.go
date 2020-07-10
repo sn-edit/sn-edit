@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/sn-edit/sn-edit/api"
 	"github.com/sn-edit/sn-edit/conf"
@@ -21,40 +22,38 @@ to search have to be present in the config file previous of using this command.`
 		tableName, err := cmd.Flags().GetString("table")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Parsing error table name flag!")
-			return
+			conf.Err("Parsing error table flag!", log.Fields{"error": err}, true)
 		}
 
 		if len(tableName) == 0 {
-			log.WithFields(log.Fields{"error": "no table name provided"}).Error("Please provide a valid table flag!")
-			return
+			conf.Err("Please provide a valid table flag!", log.Fields{"error": errors.New("invalid_table_flag")}, true)
 		}
 
 		limit, err := cmd.Flags().GetInt64("limit")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Parsing error limit flag!")
-			return
+			conf.Err("Parsing error limit flag!", log.Fields{"error": err}, true)
 		}
 
 		if limit == 0 {
-			log.WithFields(log.Fields{"error": "no table name provided"}).Error("Please provide a valid table flag!")
-			return
+			conf.Err("Please provide a valid limit flag!", log.Fields{"error": errors.New("invalid_limit_flag")}, true)
 		}
 
 		encodedQuery, err := cmd.Flags().GetString("encoded_query")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Parsing error sys_id flag!")
-			return
+			conf.Err("Parsing error encoded_query flag!", log.Fields{"error": err}, true)
 		}
 
 		if len(encodedQuery) == 0 {
-			log.WithFields(log.Fields{"error": "encoded_query not provided"}).Error("Please provide a valid encoded_query flag!")
-			return
+			conf.Err("Please provide a valid encoded_query flag!", log.Fields{"error": errors.New("invalid_encoded_query_flag")}, true)
 		}
 
 		fields, err := cmd.Flags().GetString("fields")
+
+		if err != nil {
+			conf.Err("Parsing error fields flag!", log.Fields{"error": err}, true)
+		}
 
 		// get table configuration from the config file
 		tablesConfig := config.Get("app.tables").([]interface{})
@@ -65,10 +64,10 @@ to search have to be present in the config file previous of using this command.`
 		uniqueKey, err := conf.GetUniqueKeyForTable(tablesConfig, tableName)
 
 		if err != nil {
-			return
+			conf.Err("Could not determine unique_key for the table, please validate your config!", log.Fields{"error": err}, true)
 		}
 
-		fieldsSlice := []string{}
+		var fieldsSlice []string
 
 		// if there are additional fields necessary
 		// merge them with the tableconfig if something is found
@@ -93,7 +92,7 @@ to search have to be present in the config file previous of using this command.`
 		response, err := api.Get(searchURL)
 
 		if err != nil {
-			return
+			conf.Err("There was an error while making the request!", log.Fields{"error": err}, true)
 		}
 
 		log.WithFields(log.Fields{"result": string(response), "unique_key": uniqueKey}).Info("Search result!")

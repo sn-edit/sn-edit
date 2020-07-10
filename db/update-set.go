@@ -18,14 +18,14 @@ func WriteUpdateSet(updateSetName string, updateSetSysID string, updateSetScope 
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while preparing the query!")
+		conf.Err("Error while preparing the query!", log.Fields{"error": err}, false)
 		return err
 	}
 
 	_, err = stmt.Exec(updateSetSysID, updateSetName, updateSetScope, current)
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while executing the query!")
+		conf.Err("Error while executing the query!", log.Fields{"error": err}, false)
 		return err
 	}
 
@@ -38,7 +38,7 @@ func QueryUpdateSet(updateSetSysID string) (bool, string, string) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 		return false, "", ""
 	}
 
@@ -52,7 +52,7 @@ func QueryUpdateSet(updateSetSysID string) (bool, string, string) {
 			// no rows found, it does not exist
 			return false, "", ""
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 			return false, "", ""
 		}
 	}
@@ -68,7 +68,7 @@ func ListUpdateSets(scopeID int64) ([]map[string]interface{}, error) {
 
 	if err != nil {
 		if err != sql.ErrNoRows {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error with the query!")
+			conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 			return nil, err
 		}
 	}
@@ -85,7 +85,7 @@ func ListUpdateSets(scopeID int64) ([]map[string]interface{}, error) {
 		updateSets = append(updateSets, map[string]interface{}{"sys_id": sysID, "name": name, "current": current})
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while iterating through the results!")
+			conf.Err("Error while iterating through the results!", log.Fields{"error": err}, false)
 			return nil, err
 		}
 	}
@@ -99,7 +99,7 @@ func UpdateSetExists(updateSetSysID string) (bool, string) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 		return false, ""
 	}
 
@@ -112,7 +112,7 @@ func UpdateSetExists(updateSetSysID string) (bool, string) {
 			// no rows found, it does not exist
 			return false, ""
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 			return false, ""
 		}
 	}
@@ -126,7 +126,7 @@ func UpdateSetsLoaded(scopeID int64) (bool, error) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 		return false, err
 	}
 
@@ -139,7 +139,7 @@ func UpdateSetsLoaded(scopeID int64) (bool, error) {
 			// no rows found, it does not exist
 			return false, err
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 			return false, err
 		}
 	}

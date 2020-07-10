@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sn-edit/sn-edit/conf"
@@ -28,31 +29,27 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		scriptFile, err := cmd.Flags().GetString("file")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Parsing error!")
-			return
+			conf.Err("Parsing error file flag!", log.Fields{"error": err}, true)
 		}
 
 		if len(scriptFile) == 0 {
-			log.WithFields(log.Fields{"error": err}).Error("Please provide a file!")
-			return
+			conf.Err("Provide a valid file flag please!", log.Fields{"error": errors.New("invalid_file_flag")}, true)
 		}
 
 		scopeName, err := cmd.Flags().GetString("scope")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Parsing error!")
-			return
+			conf.Err("Parsing error scope flag!", log.Fields{"error": err}, true)
 		}
 
 		scopeSysID, err := db.RequestScopeDataFromInstance(scopeName)
 
 		if err != nil {
-			return
+			conf.Err("Error while requesting scope data!", log.Fields{"error": err}, true)
 		}
 
 		if exists := file.Exists(scriptFile); exists == false {
-			log.WithFields(log.Fields{"error": err, "file": scriptFile}).Error("The file could not be found! Please check the permissions and the path!")
-			return
+			conf.Err("The file could not be found! Check the file path!", log.Fields{"error": err, "file": scriptFile}, true)
 		}
 
 		// read file contents
@@ -62,8 +59,7 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		cookieJar, err := cookiejar.New(nil)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Error initializing cookie jar!")
-			return
+			conf.Err("Error initializing cookie jar!", log.Fields{"error": err}, true)
 		}
 
 		client := &http.Client{Jar: cookieJar}
@@ -81,16 +77,14 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		loginUrl, err := url.Parse(config.GetString("app.core.rest.url") + "/login.do")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while parsing the url!")
-			return
+			conf.Err("Could not parse provided URL!", log.Fields{"error": err}, true)
 		}
 
 		// get the CK key for login
 		resp1, err := client.Get(loginUrl.String())
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while making the request!")
-			return
+			conf.Err("There was an error while making the request!", log.Fields{"error": err}, true)
 		}
 
 		defer resp1.Body.Close()
@@ -102,12 +96,12 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		match := re.FindStringSubmatch(string(body))
 
 		if match == nil {
-			log.WithFields(log.Fields{"error": match}).Error("There was an error while getting the ck token!")
-			return
+			conf.Err("The ck key could not be found in the provided HTML!", log.Fields{"error": errors.New("ck_key_not_found")}, true)
 		}
 
 		ckToken := match[1]
 
+		// build the form values manually
 		form := url.Values{}
 		form.Add("user_name", username)
 		form.Add("user_password", passwordCredential)
@@ -118,8 +112,7 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		resp2, err := client.PostForm(loginUrl.String(), form)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while making the request!")
-			return
+			conf.Err("There was an error with the login process!", log.Fields{"error": err}, true)
 		}
 
 		defer resp2.Body.Close()
@@ -128,16 +121,14 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		scriptsEndpoint, err := url.Parse(config.GetString("app.core.rest.url") + "/sys.scripts.do")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while parsing the url!")
-			return
+			conf.Err("The ck key could not be found from the HTML source!", log.Fields{"error": err}, true)
 		}
 
 		// get the CK key
 		resp3, err := client.Get(scriptsEndpoint.String())
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while making the request!")
-			return
+			conf.Err("There was an error while making the request!", log.Fields{"error": err}, true)
 		}
 
 		defer resp3.Body.Close()
@@ -145,8 +136,7 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		body, err = ioutil.ReadAll(resp3.Body)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Could not read response body!")
-			return
+			conf.Err("There was an error while reading the response body!", log.Fields{"error": err}, true)
 		}
 
 		// search for the CK key in the HTML string, present differently that at the login...
@@ -154,14 +144,15 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		match = re.FindStringSubmatch(string(body))
 
 		if match == nil {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while getting the ck token!")
-			return
+			conf.Err("There was an error while getting the ck token!", log.Fields{"error": err}, true)
 		}
 
 		ckToken = match[1]
 
+		// build form values for script execution
 		form = url.Values{}
 		form.Add("script", string(dat))
+		// automatically create a record for rollback
 		form.Add("record_for_rollback", "on")
 		form.Add("quota_managed_transaction", "on")
 		form.Add("sys_scope", scopeSysID)
@@ -171,14 +162,13 @@ that has access to the Background Scripts functionality. Otherwise the feature m
 		resp4, err := client.PostForm(scriptsEndpoint.String(), form)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while making the request!")
-			return
+			conf.Err("There was an error while executing the script!", log.Fields{"error": err}, true)
 		}
 
 		defer resp4.Body.Close()
 		// read the result
 		body, err = ioutil.ReadAll(resp4.Body)
-		fmt.Println("SCOPE: ", scopeSysID)
+
 		if outputJSON, _ := rootCmd.Flags().GetBool("json"); !outputJSON {
 			fmt.Println(string(body))
 		} else {
