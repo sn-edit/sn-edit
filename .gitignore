@@ -1,3 +1,4 @@
 _config/sn-edit.yaml
 build/
 /tmp/
+.DS_Store
