@@ -2,7 +2,6 @@ package conf
 
 import (
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 func BuildTables() {
@@ -24,16 +23,14 @@ func BuildTables() {
 		_, err := dbc.Exec(sqlStmt)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Database initialisation error!")
-			os.Exit(1)
+			Err("Database initialisation error!", log.Fields{"error": err}, true)
 		}
 
 		config.Set("app.core.db.initialised", true)
 		err = config.WriteConfig()
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("There was a problem while rewriting the config file! Check the permissions please!")
-			os.Exit(1)
+			Err("There was a problem while rewriting the config file! Check the permissions please!", log.Fields{"error": err}, true)
 		}
 	}
 }

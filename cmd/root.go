@@ -17,8 +17,7 @@ import (
 
 var (
 	// Used for flags.
-	cfgFile     string
-	userLicense string
+	cfgFile string
 )
 
 // commands list
@@ -62,7 +61,9 @@ func initConfig() {
 
 	// exclude banner if json output requested
 	if outputJSON, _ := rootCmd.Flags().GetBool("json"); !outputJSON {
-		PrintBanner()
+		if runtime.GOOS != "windows" {
+			PrintBanner()
+		}
 	}
 
 	// Output to stdout instead of the default stderr
@@ -136,9 +137,15 @@ func init() {
 	// execute scripts flags
 	executeScriptsCmd.Flags().StringP("file", "", "", "recommended use is a fullpath to the file, but you can also specify relative paths from the POV of the binary. (example: \"/home/user/background-scripts/some-script.js\")")
 	executeScriptsCmd.Flags().StringP("scope", "", "global", "the name of the scope, defaults to global (example: \"global\")")
+	// search flag
+	searchCmd.Flags().StringP("table", "", "", "the table you want to search the entries in")
+	searchCmd.Flags().StringP("fields", "", "", "comma separated list of field names, if existent will be merged with tableconfig fields for this table")
+	searchCmd.Flags().StringP("encoded_query", "", "", "the encoded query we should use when searching")
+	searchCmd.Flags().Int64P("limit", "", 1, "limit of the records that are returned from the API")
 	//rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(downloadEntryCmd)
 	rootCmd.AddCommand(uploadEntryCmd)
 	rootCmd.AddCommand(updateSetCmd)
 	rootCmd.AddCommand(executeScriptsCmd)
+	rootCmd.AddCommand(searchCmd)
 }

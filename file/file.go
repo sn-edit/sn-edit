@@ -16,13 +16,13 @@ func WriteFile(tableName string, scopeName string, uniqueKeyName string, fieldNa
 	// just a debug/warning
 	if exists := Exists(filePath); exists == false {
 		err := errors.New("file_not_found")
-		log.WithFields(log.Fields{"error": err, "filepath": filePath}).Debug("There was an error while checking for the file existence!")
+		log.WithFields(log.Fields{"error": err, "filepath": filePath}).Debug("File does not exist yet!")
 	}
 
 	err := ioutil.WriteFile(filePath, contents, 0644)
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err, "filepath": filePath}).Panic("There was an error while writing the file!")
+		conf.Err("Error writing the file contents!", log.Fields{"error": err, "filepath": filePath}, false)
 		return err
 	}
 

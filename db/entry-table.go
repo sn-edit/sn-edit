@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"github.com/icza/dyno"
 	log "github.com/sirupsen/logrus"
 	"github.com/sn-edit/sn-edit/api"
@@ -35,14 +36,14 @@ func WriteTable(tableName string) error {
 	err = json.Unmarshal(response, &responseResult)
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("Error while unmarshalling JSON data!")
+		conf.Err("Error unmarshalling JSON data!", log.Fields{"error": err}, false)
 		return err
 	}
 
 	result, err := dyno.Get(responseResult, "result")
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("Error while finding the result key!")
+		conf.Err("Invalid key!", log.Fields{"error": err}, false)
 		return err
 	}
 
@@ -56,7 +57,7 @@ func WriteTable(tableName string) error {
 		resultTableName, err = dyno.GetString(res, "name")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "name"}).Error("There was an error while getting the unique key!")
+			conf.Err("Invalid key!", log.Fields{"error": err}, false)
 			return err
 		}
 
@@ -64,7 +65,7 @@ func WriteTable(tableName string) error {
 		resultTableSysID, err = dyno.GetString(res, "sys_id")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "sys_id"}).Error("There was an error while getting the unique key!")
+			conf.Err("Invalid key!", log.Fields{"error": err}, false)
 			return err
 		}
 
@@ -72,14 +73,14 @@ func WriteTable(tableName string) error {
 		scopeName, err := dyno.GetString(res, "sys_scope.name") // scope name
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "sys_scope.name"}).Error("There was an error while getting the key!")
+			conf.Err("Invalid key!", log.Fields{"error": err}, false)
 			return err
 		}
 
 		scopeDataID, err = dyno.GetString(res, "sys_scope.sys_id") // sys_id of scope
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "sys_scope.sys_id"}).Error("There was an error while getting the key!")
+			conf.Err("Invalid key!", log.Fields{"error": err}, false)
 			return err
 		}
 
@@ -88,7 +89,7 @@ func WriteTable(tableName string) error {
 		err = WriteScope(scopeDataID, scopeName)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Debug("There was an error while writing the scope data!")
+			conf.Err("Could not write scope data!", log.Fields{"error": err}, false)
 			return err
 		}
 	}
@@ -96,7 +97,7 @@ func WriteTable(tableName string) error {
 	success, scopeID := QueryScope(scopeDataID)
 
 	if !success {
-		log.WithFields(log.Fields{"error": err}).Debug("There was an error while querying the scope data!")
+		conf.Err("Error while querying database data!", log.Fields{"error": errors.New("scope_data_query")}, false)
 		return err
 	}
 
@@ -104,14 +105,14 @@ func WriteTable(tableName string) error {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while preparing the query!")
+		conf.Err("Error while preparing the query!", log.Fields{"error": err}, false)
 		return err
 	}
 
 	_, err = stmt.Exec(resultTableSysID, resultTableName, scopeID)
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while executing the query!")
+		conf.Err("Error while executing the query!", log.Fields{"error": err}, false)
 		return err
 	}
 
@@ -124,7 +125,7 @@ func QueryTable(tableName string) (bool, string) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 		return false, ""
 	}
 
@@ -137,7 +138,7 @@ func QueryTable(tableName string) (bool, string) {
 			// no rows found, it does not exist
 			return false, ""
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 			return false, ""
 		}
 	}
@@ -151,7 +152,7 @@ func TableExists(tableName string) (bool, string) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 		return false, ""
 	}
 
@@ -164,7 +165,7 @@ func TableExists(tableName string) (bool, string) {
 			// no rows found, it does not exist
 			return false, ""
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("Error while querying database data!", log.Fields{"error": err}, false)
 			return false, ""
 		}
 	}

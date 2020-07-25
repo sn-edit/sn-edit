@@ -19,14 +19,14 @@ func WriteScope(sysID string, scopeName string) error {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while preparing the query!")
+		conf.Err("There was an error while preparing the query!", log.Fields{"error": err}, false)
 		return err
 	}
 
 	_, err = stmt.Exec(sysID, scopeName)
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while executing the query!")
+		conf.Err("There was an error while executing the query!", log.Fields{"error": err}, false)
 		return err
 	}
 
@@ -39,7 +39,7 @@ func QueryScope(sysID string) (bool, int64) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 		return false, 0
 	}
 
@@ -52,7 +52,7 @@ func QueryScope(sysID string) (bool, int64) {
 			// no rows found, it does not exist
 			return false, 0
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 			return false, 0
 		}
 	}
@@ -66,7 +66,7 @@ func ScopeExists(scopeName string) (bool, string, string) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 		return false, "", ""
 	}
 
@@ -80,7 +80,7 @@ func ScopeExists(scopeName string) (bool, string, string) {
 			// no rows found, it does not exist
 			return false, "", ""
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 			return false, "", ""
 		}
 	}
@@ -94,7 +94,7 @@ func GetScopeNameFromSysID(sysID string) (bool, string) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 		return false, ""
 	}
 
@@ -107,7 +107,7 @@ func GetScopeNameFromSysID(sysID string) (bool, string) {
 			// no rows found, it does not exist
 			return false, ""
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 			return false, ""
 		}
 	}
@@ -151,14 +151,14 @@ func RequestScopeDataFromInstance(sysScopeSysID string) (string, error) {
 	err = json.Unmarshal(response, &responseResult)
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("Error while unmarshalling JSON data!")
+		conf.Err("Error unmarshalling JSON data!", log.Fields{"error": err}, false)
 		return "", err
 	}
 
 	result, err := dyno.Get(responseResult, "result")
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("Error while finding the result key!")
+		conf.Err("Invalid key!", log.Fields{"error": err}, false)
 		return "", err
 	}
 
@@ -169,14 +169,14 @@ func RequestScopeDataFromInstance(sysScopeSysID string) (string, error) {
 		scopeName, err := dyno.GetString(res, "scope")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "sys_scope.scope"}).Error("Key parsing error!")
+			conf.Err("Invalid key!", log.Fields{"error": err}, false)
 			return "", err
 		}
 
 		scopeSysID, err = dyno.GetString(res, "sys_id")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "key": "sys_scope.scope"}).Error("Key parsing error!")
+			conf.Err("Invalid key!", log.Fields{"error": err}, false)
 			return "", err
 		}
 

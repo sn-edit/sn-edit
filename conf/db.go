@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 var (
@@ -23,15 +22,14 @@ func ConnectDB() *sql.DB {
 	path := config.GetString("app.core.db.path")
 
 	if path == "" {
-		log.WithFields(log.Fields{"error": err, "path": path}).Error("Please specify a database path!")
+		Err("Please specify a valid database path!", log.Fields{"error": err, "path": path}, true)
 	}
 
 	db, err = sql.Open("sqlite3", "file:"+path+"?cache=shared")
 
 	// Check error for database connection
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was a problem while connecting to the database!")
-		os.Exit(1)
+		Err("Please specify a valid database path!", log.Fields{"error": err}, true)
 	}
 
 	return db

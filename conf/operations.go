@@ -3,7 +3,6 @@ package conf
 import (
 	"github.com/icza/dyno"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 func GetTableNames(tablesConfig []interface{}) []string {
@@ -13,7 +12,7 @@ func GetTableNames(tablesConfig []interface{}) []string {
 		tableName, err := dyno.GetString(value, "name")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "path": "tablenames.name"}).Error("Was not able to find the key!")
+			Err("Invalid key!", log.Fields{"error": err}, false)
 			return []string{}
 		}
 
@@ -31,7 +30,7 @@ func GetTableFieldNames(tablesConfig []interface{}, tableName string) []string {
 		table, err := dyno.GetString(value, "name")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "path": "tableFieldNames.table"}).Error("Was not able to find the key!")
+			Err("Invalid key!", log.Fields{"error": err}, false)
 		}
 
 		if table == tableName {
@@ -39,7 +38,7 @@ func GetTableFieldNames(tablesConfig []interface{}, tableName string) []string {
 			fields, err := dyno.Get(value, "fields")
 
 			if err != nil {
-				log.WithFields(log.Fields{"error": err, "path": "tableFieldNames.table.fields"}).Error("Was not able to find the key!")
+				Err("Invalid key!", log.Fields{"error": err}, false)
 			}
 
 			fieldMap := fields.([]interface{})
@@ -48,7 +47,7 @@ func GetTableFieldNames(tablesConfig []interface{}, tableName string) []string {
 				fieldName, err := dyno.GetString(field, "field")
 
 				if err != nil {
-					log.WithFields(log.Fields{"error": err, "path": "tableFieldNames.table.field"}).Error("Was not able to find the key!")
+					Err("Invalid key!", log.Fields{"error": err}, false)
 				}
 
 				result = append(result, fieldName)
@@ -66,8 +65,7 @@ func GetFieldExtension(tablesConfig []interface{}, tableName string, fieldName s
 		table, err := dyno.GetString(value, "name")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "path": "fieldExtension.name"}).Error("Was not able to find the key!")
-			os.Exit(1)
+			Err("Invalid key!", log.Fields{"error": err}, true)
 		}
 
 		if table == tableName {
@@ -75,8 +73,7 @@ func GetFieldExtension(tablesConfig []interface{}, tableName string, fieldName s
 			fields, err := dyno.Get(value, "fields")
 
 			if err != nil {
-				log.WithFields(log.Fields{"error": err, "path": "fieldExtension.fields"}).Error("Was not able to find the key!")
-				os.Exit(1)
+				Err("Invalid key!", log.Fields{"error": err}, true)
 			}
 
 			fieldMap := fields.([]interface{})
@@ -85,16 +82,14 @@ func GetFieldExtension(tablesConfig []interface{}, tableName string, fieldName s
 				fieldNeedle, err := dyno.GetString(field, "field")
 
 				if err != nil {
-					log.WithFields(log.Fields{"error": err, "path": "fieldExtension.fields.field"}).Error("Was not able to find the key!")
-					os.Exit(1)
+					Err("Invalid key!", log.Fields{"error": err}, true)
 				}
 
 				if fieldNeedle == fieldName {
 					fieldExtension, err := dyno.GetString(field, "extension")
 
 					if err != nil {
-						log.WithFields(log.Fields{"error": err, "path": "fieldExtension.fields.field"}).Error("Was not able to find the key!")
-						os.Exit(1)
+						Err("Invalid key!", log.Fields{"error": err}, true)
 					}
 
 					return fieldExtension
@@ -114,8 +109,7 @@ func GetUniqueKeyForTable(tablesConfig []interface{}, tableName string) (string,
 		table, err := dyno.GetString(value, "name")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Was not able to find the key!")
-			os.Exit(1)
+			Err("Invalid key!", log.Fields{"error": err}, true)
 		}
 
 		if table == tableName {
@@ -123,8 +117,7 @@ func GetUniqueKeyForTable(tablesConfig []interface{}, tableName string) (string,
 			uniqueKey, err = dyno.GetString(value, "unique_key")
 
 			if err != nil {
-				log.WithFields(log.Fields{"error": err}).Error("Was not able to find the key!")
-				os.Exit(1)
+				Err("Invalid key!", log.Fields{"error": err}, true)
 			}
 		}
 	}
@@ -135,13 +128,12 @@ func EnforceFields(tablesConfig []interface{}, tableName string, fields []string
 	uniqueKey, err := GetUniqueKeyForTable(tablesConfig, tableName)
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("Please define a unique key for every table for sn-edit!")
-		os.Exit(1)
+		Err("Please define a unique key for every table in your cocnfig!", log.Fields{"error": err}, true)
 	}
 
 	requiredFields := []string{"sys_id", "sys_scope.name", "sys_scope.sys_id", uniqueKey}
 	for _, requiredField := range requiredFields {
-		if !containsField(fields, requiredField) {
+		if !ContainsField(fields, requiredField) {
 			fields = append(fields, requiredField)
 		}
 	}
@@ -149,7 +141,7 @@ func EnforceFields(tablesConfig []interface{}, tableName string, fields []string
 	return fields
 }
 
-func containsField(fields []string, key string) bool {
+func ContainsField(fields []string, key string) bool {
 	for _, field := range fields {
 		if field == key {
 			return true

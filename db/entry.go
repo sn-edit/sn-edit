@@ -24,7 +24,7 @@ func WriteEntry(tableName string, uniqueKeyName string, sysID string, sysScopeSy
 
 	if !success {
 		err = errors.New("table_not_found")
-		log.WithFields(log.Fields{"err": err}).Debug("Table not found! Please re-download!")
+		log.WithFields(log.Fields{"warn": err}).Debug("Table not found! Please re-download!")
 		return err
 	}
 
@@ -57,14 +57,14 @@ func WriteEntry(tableName string, uniqueKeyName string, sysID string, sysScopeSy
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while preparing the query!")
+		conf.Err("There was an error while preparing the query!", log.Fields{"error": err}, false)
 		return err
 	}
 
 	_, err = stmt.Exec(sysID, uniqueKeyName, tableID, fileScope, time.Now().UnixNano())
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while executing the query!")
+		conf.Err("There was an error while executing the query!", log.Fields{"error": err}, false)
 		return err
 	}
 
@@ -77,7 +77,7 @@ func QueryUniqueKey(tableName string, sysID string) (bool, string) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 		return false, ""
 	}
 
@@ -90,7 +90,7 @@ func QueryUniqueKey(tableName string, sysID string) (bool, string) {
 			// no rows found, it does not exist
 			return false, ""
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 			return false, ""
 		}
 	}
@@ -104,7 +104,7 @@ func GetEntryScopeName(tableName string, sysID string) (bool, string) {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 		return false, ""
 	}
 
@@ -117,7 +117,7 @@ func GetEntryScopeName(tableName string, sysID string) (bool, string) {
 			// no rows found, it does not exist
 			return false, ""
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 			return false, ""
 		}
 	}
@@ -132,7 +132,7 @@ func EntryExists(tableID string, sysID string, sysScope int64) bool {
 	defer stmt.Close()
 
 	if err != nil {
-		log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+		conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 		return false
 	}
 
@@ -145,7 +145,7 @@ func EntryExists(tableID string, sysID string, sysScope int64) bool {
 			// no rows found, it does not exist
 			return false
 		} else {
-			log.WithFields(log.Fields{"error": err}).Error("There was an error while querying the database!")
+			conf.Err("There was an error while querying the database!", log.Fields{"error": err}, false)
 			return false
 		}
 	}

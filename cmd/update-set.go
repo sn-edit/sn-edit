@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/sn-edit/sn-edit/cmd/updateset"
+	"github.com/sn-edit/sn-edit/conf"
 	"github.com/spf13/cobra"
 )
 
@@ -16,35 +18,31 @@ Attention: An invalid scope name defaults to global scope. I warned you!`,
 		scopeName, err := cmd.Flags().GetString("scope")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "flag": "updateset.scope"}).Error("Parsing error!")
-			return
+			conf.Err("Parsing error scope flag!", log.Fields{"error": err}, true)
 		}
 
 		// list update sets for scope
 		list, err := cmd.Flags().GetBool("list")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "flag": "list"}).Error("Parsing error!")
-			return
+			conf.Err("Parsing error list flag!", log.Fields{"error": err}, true)
 		}
 
 		// set update sets for scope
 		set, err := cmd.Flags().GetBool("set")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "flag": "list"}).Error("Parsing error!")
-			return
+			conf.Err("Parsing error set flag!", log.Fields{"error": err}, true)
 		}
 
 		// truncate update sets globally
 		truncate, err := cmd.Flags().GetBool("truncate")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "flag": "truncate"}).Error("Parsing error!")
-			return
+			conf.Err("Parsing error truncate flag!", log.Fields{"error": err}, true)
 		}
 
-		// refresh flag tryncates update set data in the database
+		// refresh flag truncates update set data in the database
 		// use this carefully
 		if truncate {
 			updateset.TruncateUpdateSets()
@@ -60,12 +58,12 @@ Attention: An invalid scope name defaults to global scope. I warned you!`,
 			updateSetSysID, err := cmd.Flags().GetString("update_set")
 
 			if err != nil {
-				log.WithFields(log.Fields{"error": err, "flag": "updateset.scope"}).Error("Parsing error!")
-				return
+				conf.Err("Parsing error update_set flag!", log.Fields{"error": err}, true)
 			}
 
 			if len(updateSetSysID) != 32 {
-				log.WithFields(log.Fields{"error": "sys_id.length", "flag": "updateset.update_set"}).Error("The update_set flag has to be a sys_id of Update Set! See --list to get the curenty avaliable entries!")
+				log.Info("Get a list of sys_id's by calling the updateset --list command!")
+				conf.Err("Please provide a valid sys_id!", log.Fields{"error": errors.New("invalid_sys_id_length")}, true)
 			}
 
 			updateset.SetCommand(scopeName, updateSetSysID)

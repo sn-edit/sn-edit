@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sn-edit/sn-edit/api"
@@ -25,48 +26,46 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 		tableName, err := cmd.Flags().GetString("table")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Parsing error table name flag!")
-			return
+			conf.Err("Parsing error table flag!", log.Fields{"error": err}, true)
 		}
 
 		if len(tableName) == 0 {
-			log.WithFields(log.Fields{"error": "no table name provided"}).Error("Please provide a valid table flag!")
-			return
+			conf.Err("Please provide a valid table flag!", log.Fields{"error": errors.New("invalid_table")}, true)
 		}
 
 		sysID, err := cmd.Flags().GetString("sys_id")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Parsing error sys_id flag!")
-			return
+			conf.Err("Parsing error sys_id flag!", log.Fields{"error": err}, true)
 		}
 
 		if len(sysID) != 32 {
-			log.WithFields(log.Fields{"error": "sys_id length must be 32"}).Error("Please provide a valid sys_id flag!")
-			return
+			conf.Err("Please provide a valid sys_id flag!", log.Fields{"error": errors.New("invalid_sys_id")}, true)
 		}
 
 		fields, err := cmd.Flags().GetString("fields")
+
+		if err != nil {
+			conf.Err("Parsing error fields flag!", log.Fields{"error": err}, true)
+		}
 
 		fieldsSlice := strings.Split(fields, ",")
 
 		// if array length is 1, but the first element is an empty string, do not allow processing
 		if len(fieldsSlice) == 1 && fieldsSlice[0] == "" {
-			log.WithFields(log.Fields{"error": "please provide the fields"}).Error("Please provide a valid fields flag!")
-			return
+			conf.Err("Please provide a valid fields flag!", log.Fields{"error": errors.New("invalid_fields_flag")}, true)
 		}
 
 		// get the update set name if exists
 		updateSet, err := cmd.Flags().GetString("update_set")
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Parsing error update_set flag!")
-			return
+			conf.Err("Parsing error update_set flag!", log.Fields{"error": err}, true)
 		}
 
-		if len(sysID) != 32 {
-			log.WithFields(log.Fields{"error": "update_set length must be 32"}).Error("Please provide a valid update_set flag!")
-			return
+		if len(updateSet) != 32 {
+			log.Info("Get a list of sys_id's by calling the updateset --list command!")
+			conf.Err("Please provide a valid update_set flag!", log.Fields{"error": errors.New("invalid_sys_id")}, true)
 		}
 
 		// get table configuration from the config file
@@ -83,15 +82,13 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 		found, uniqueKeyName := db.QueryUniqueKey(tableName, sysID)
 
 		if !found {
-			log.WithFields(log.Fields{"error": err, "table_name": tableName, "sys_id": sysID}).Error("There was an error while getting the key!")
-			return
+			conf.Err("Could not find unique_key!", log.Fields{"error": errors.New("unique_key_not_found"), "table_name": tableName, "sys_id": sysID}, true)
 		}
 
 		success, fileScopeName := db.GetEntryScopeName(tableName, sysID)
 
 		if !success {
-			log.WithFields(log.Fields{"error": err, "table_name": tableName, "sys_id": sysID}).Error("Please re-download the entry again!")
-			return
+			conf.Err("Could not find scope for entry! Please re-download entry!", log.Fields{"error": errors.New("data_out_of_sync"), "table_name": tableName, "sys_id": sysID}, true)
 		}
 
 		// iterate through the cli fields which need updating on the instance
@@ -104,8 +101,7 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 			content, err := file.ReadFile(filePath)
 
 			if err != nil {
-				log.WithFields(log.Fields{"error": err, "file_path": filePath}).Error("There was an error while getting the key!")
-				return
+				conf.Err("File read error! Please check permissions!", log.Fields{"error": err}, true)
 			}
 
 			data[cliField] = string(content)
@@ -115,8 +111,7 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 		dataJSON, err := json.Marshal(data)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err}).Error("Error while marshalling JSON data!")
-			return
+			conf.Err("JSON marshalling error!", log.Fields{"error": err}, true)
 		}
 
 		// setup the upload url
@@ -127,13 +122,12 @@ Providing a field is optional, if you do not provide any, sn-edit will assume yo
 			uploadURLv2 = uploadURLv2 + "&sysparm_transaction_update_set=" + updateSet
 		}
 
-		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fieldsSlice, "scope": fileScopeName}).Info("Uploading data to the instance")
+		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fieldsSlice, "scope": fileScopeName}).Info("Uploading data to the instance...")
 
 		_, err = api.Put(uploadURLv2, dataJSON)
 
 		if err != nil {
-			log.WithFields(log.Fields{"error": err, "sys_id": sysID, "table": tableName, "fields": fieldsSlice, "scope": fileScopeName}).Error("There was an error while uploading the data!")
-			return
+			conf.Err("There was an error while uploading the entry data!", log.Fields{"error": err, "sys_id": sysID, "table": tableName, "fields": fieldsSlice, "scope": fileScopeName}, true)
 		}
 
 		log.WithFields(log.Fields{"sys_id": sysID, "table": tableName, "fields": fieldsSlice, "scope": fileScopeName}).Info("The data was successfully uploaded!")
