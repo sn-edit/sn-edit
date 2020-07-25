@@ -42,7 +42,7 @@ Attention: An invalid scope name defaults to global scope. I warned you!`,
 			conf.Err("Parsing error truncate flag!", log.Fields{"error": err}, true)
 		}
 
-		// refresh flag tryncates update set data in the database
+		// refresh flag truncates update set data in the database
 		// use this carefully
 		if truncate {
 			updateset.TruncateUpdateSets()
